@@ -9,3 +9,5 @@ Saldo_Disponible_Odoo_PQ.xlsx
 Info_Archivos_Anteriores_BI/
 Presentacion_Horas_Punta.html
 Vida_Componente.py
+# Excel generados por los notebooks (contienen montos; el repo es público)
+*.xlsx
