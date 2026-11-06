@@ -11,3 +11,6 @@ Presentacion_Horas_Punta.html
 Vida_Componente.py
 # Excel generados por los notebooks (contienen montos; el repo es público)
 *.xlsx
+
+# Presentaciones exportadas (datos de la empresa; el repo es público)
+Presentacion_Horas_Punta.pdf
