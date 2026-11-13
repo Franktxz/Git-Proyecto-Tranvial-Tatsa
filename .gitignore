@@ -7,12 +7,19 @@ Proyecto_Informe_Bi_Transvial_Tatsa/
 Trazabilidad.Lote.ipynb
 Saldo_Disponible_Odoo_PQ.xlsx
 Info_Archivos_Anteriores_BI/
-Presentacion_Horas_Punta.html
 Vida_Componente.py
+# Contexto interno de Odoo y contratos (montos y datos de la empresa; el repo es público)
+Contexto_Odoo/
+
 # Excel generados por los notebooks (contienen montos; el repo es público)
 *.xlsx
 
+# Herramienta de repuestos generada (contiene datos; la plantilla y el script sí se versionan)
+Herramienta_Repuestos.html
+Herramienta_Pendientes.html
+
 # Presentaciones exportadas (datos de la empresa; el repo es público)
-Presentacion_Horas_Punta.pdf
 Presentacion_Importacion_G1011501.html
-Presentacion_Transito_RQ.html
+
+# Caché que Python crea solo al ejecutar (se regenera)
+__pycache__/

@@ -1,0 +1,1192 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repuestos por llave</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Herramienta de taller: elegir repuestos → armar el RQ → ubicar los fondos. Tinta azul petróleo sobre gris frío */
+:root{
+  --bg:#F4F6F8;--panel:#FFFFFF;--panel2:#EEF2F5;--panel3:#F7F9FB;--line:#DDE3E9;--text:#14202B;--muted:#56657A;--faint:#8693A3;
+  --brand:#0E4C7A;--brand-soft:#E1ECF6;--on-brand:#FFFFFF;
+  --red:#B8322A;--red-soft:#FBE8E6;--amber:#A86200;--amber-soft:#FFF1D9;--green:#1D7A4B;--green-soft:#E1F3E9;
+  --violet:#6A3E9E;--violet-soft:#EEE6F8;--teal:#0C7782;--teal-soft:#DDF1F3;--gray:#667385;--gray-soft:#ECEFF2;
+  --bar:#86ABD0;--bar-hi:#0E4C7A;--shadow:0 1px 2px rgba(16,32,48,.05),0 3px 10px rgba(16,32,48,.05);
+  --f-ui:"Inter",system-ui,"Segoe UI",Roboto,Arial,sans-serif;--f-head:"Space Grotesk","Inter","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E141A;--panel:#151C24;--panel2:#1B242E;--panel3:#18202A;--line:#283340;--text:#E4ECF3;--muted:#A0AEBE;--faint:#778596;
+  --brand:#7FB5E6;--brand-soft:#1A2D41;--on-brand:#0E141A;
+  --red:#FF8B80;--red-soft:#3A1D1B;--amber:#F0B34E;--amber-soft:#382A12;--green:#70D2A0;--green-soft:#152E1F;
+  --violet:#C2A2EE;--violet-soft:#2A203E;--teal:#62C9D2;--teal-soft:#112F32;--gray:#A0AEBE;--gray-soft:#222B35;
+  --bar:#3C6B99;--bar-hi:#7FB5E6;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141A;--panel:#151C24;--panel2:#1B242E;--panel3:#18202A;--line:#283340;--text:#E4ECF3;--muted:#A0AEBE;--faint:#778596;
+  --brand:#7FB5E6;--brand-soft:#1A2D41;--on-brand:#0E141A;
+  --red:#FF8B80;--red-soft:#3A1D1B;--amber:#F0B34E;--amber-soft:#382A12;--green:#70D2A0;--green-soft:#152E1F;
+  --violet:#C2A2EE;--violet-soft:#2A203E;--teal:#62C9D2;--teal-soft:#112F32;--gray:#A0AEBE;--gray-soft:#222B35;
+  --bar:#3C6B99;--bar-hi:#7FB5E6;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 var(--f-ui)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1680px;margin:0 auto;padding-block:18px 90px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+h1{font:600 22px/1.2 var(--f-head);margin:0;letter-spacing:-.2px;text-wrap:balance}
+.sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.hbtn{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--brand)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.btn.sm{padding:3px 9px;font-size:12px}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)} .btn.ghost:hover{border-color:var(--line);color:var(--text)}
+.btn:disabled{opacity:.45;cursor:default}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:0}
+.params{padding:12px 16px;margin-bottom:12px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px 18px}
+.pgrid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.pgrid input[type=number],.pgrid select{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:5px 8px;width:100%}
+.chk{flex-direction:row!important;align-items:center;gap:8px!important;color:var(--text)!important;font-size:13px!important;display:inline-flex}
+.pnote{font-size:12px;color:var(--faint);margin-top:10px;max-width:120ch}
+/* pestañas: es el flujo de trabajo 1 → 2 → 3 */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;overflow-x:auto;position:sticky;top:0;background:var(--bg);z-index:5}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:9px 14px;cursor:pointer;color:var(--muted);font:600 14px var(--f-head);white-space:nowrap}
+.tab .st{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--panel2);font:600 11px var(--f-ui);margin-right:6px}
+.tab.on{color:var(--brand);border-bottom-color:var(--brand)} .tab.on .st{background:var(--brand);color:var(--on-brand)}
+.tab .cnt{font:500 12px var(--f-ui);color:var(--faint);margin-left:6px}
+.tab .cnt.hot{color:var(--brand);font-weight:700}
+.filters{padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-bottom:12px}
+.filters input[type=search]{flex:1 1 260px;min-width:180px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.filters select,.sel{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 8px;max-width:230px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px;margin-bottom:12px}
+.kpi{padding:10px 13px;border-left:4px solid var(--line);text-align:left}
+.kpi[data-e]{cursor:pointer} .kpi[data-e]:hover{border-color:var(--brand)}
+.kpi .v{font:600 21px/1.2 var(--f-head);letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--muted)} .kpi .s{font-size:11.5px;color:var(--faint)}
+.kpi.sel{outline:2px solid var(--brand)}
+.k-red{border-left-color:var(--red)}.k-amber{border-left-color:var(--amber)}.k-violet{border-left-color:var(--violet)}
+.k-gray{border-left-color:var(--gray)}.k-brand{border-left-color:var(--brand)}.k-teal{border-left-color:var(--teal)}.k-green{border-left-color:var(--green)}
+.row2{display:grid;grid-template-columns:1fr 290px;gap:12px;margin-bottom:12px;align-items:start}
+@media (max-width:1000px){.row2{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:600}
+.chip.add{border-style:dashed;background:none}
+.chip.add:hover{border-color:var(--brand);color:var(--brand)}
+.box{padding:10px 14px}
+.box h3{margin:0 0 6px;font:600 13px var(--f-head);color:var(--muted)}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.mx table{width:100%;border-collapse:collapse;font-size:12px}
+.mx th{color:var(--faint);font-weight:600;padding:3px}
+.mx td{text-align:center;padding:5px 3px;border-radius:6px;cursor:pointer;font-variant-numeric:tabular-nums}
+.mx td:hover{outline:1px solid var(--brand)} .mx td.on{outline:2px solid var(--brand)}
+/* leyenda del estado */
+.leg{margin-top:10px;border-top:1px solid var(--line);padding-top:10px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.leg ol{margin:6px 0 0;padding-left:20px} .leg li{margin-bottom:4px} .leg b{color:var(--text)}
+.leg code{background:var(--panel2);border-radius:4px;padding:0 5px;color:var(--text)}
+/* tablas */
+.tbl{overflow:auto;max-height:calc(100vh - 150px)}
+table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+.t th{position:sticky;top:0;background:var(--panel2);color:var(--muted);font-weight:600;font-size:12px;text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;user-select:none;z-index:1}
+.t th[data-k]{cursor:pointer}
+.t th.n,.t td.n{text-align:right}
+.t th .ar{color:var(--brand)}
+.t td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle;font-variant-numeric:tabular-nums}
+.t tbody tr[data-i]:hover td{background:var(--panel3);cursor:pointer}
+.t tr.insel td{background:var(--brand-soft)} .t tbody tr.insel[data-i]:hover td{background:var(--brand-soft)}
+.t td.name{white-space:normal;min-width:240px;max-width:360px}
+.t td.ck,.t th.ck{width:34px;padding-right:0;text-align:center}
+.ck label{display:grid;place-items:center;cursor:pointer;min-height:24px}
+.ck input{width:16px;height:16px;cursor:pointer;accent-color:var(--brand)}
+.nm{font-weight:600}
+.cd{font-size:11px;color:var(--faint)}
+.badge{display:inline-block;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.b-COMPRAR{background:var(--red-soft);color:var(--red)} .b-EVALUAR{background:var(--brand-soft);color:var(--brand)}
+.b-APURAR{background:var(--amber-soft);color:var(--amber)} .b-OK{background:var(--green-soft);color:var(--green)}
+.b-SOBRESTOCK{background:var(--violet-soft);color:var(--violet)} .b-SINROT{background:var(--gray-soft);color:var(--gray)}
+.b-TRANSITO{background:var(--teal-soft);color:var(--teal)} .b-INACTIVO{background:var(--gray-soft);color:var(--faint)}
+.badge[title]{cursor:help}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:11px;color:var(--muted);white-space:nowrap}
+.tag.warn{border-color:var(--amber);color:var(--amber)} .tag.bad{border-color:var(--red);color:var(--red)} .tag.okk{border-color:var(--green);color:var(--green)}
+.muted{color:var(--faint)} .neg{color:var(--red)} .pos{color:var(--green)}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.pager{display:flex;gap:6px;align-items:center}
+/* barra de selección (pestaña 1) */
+[hidden]{display:none!important}
+.selbar{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:15;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;
+  background:var(--text);color:var(--bg);border-radius:12px;padding:9px 12px 9px 16px;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:calc(100vw - 24px)}
+.selbar b{font-variant-numeric:tabular-nums}
+.selbar .btn{background:transparent;color:var(--bg);border-color:color-mix(in srgb,var(--bg) 35%,transparent)}
+.selbar .btn.pri{background:var(--bg);color:var(--text);border-color:var(--bg)}
+/* resumen (pestañas 2 y 3) */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 18px}
+.sum div{display:flex;flex-direction:column;padding:4px 0}
+.sum b{font:600 19px/1.25 var(--f-head);font-variant-numeric:tabular-nums}
+.sum span{font-size:12px;color:var(--muted)}
+.prog{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .2s}
+@media (prefers-reduced-motion:reduce){.prog i{transition:none}}
+.ctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.ctl .sp{flex:1}
+.ctl input[type=search],.ctl input[type=text]{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 9px;min-width:220px}
+.lbl{font-size:12px;color:var(--muted)}
+/* grupos del RQ */
+.grp{margin-bottom:12px}
+.gh{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:10px 14px}
+.gh .gt{font:600 15px var(--f-head);flex:1 1 260px;min-width:0}
+.gh .gm{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.gh .gm b{color:var(--text)}
+.gb{border-top:1px solid var(--line);overflow-x:auto}
+.in{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.in:hover{border-color:var(--faint)} .in:focus{border-color:var(--brand);background:var(--panel)}
+.qin{width:78px;text-align:right} .pin{width:92px;text-align:right} .nin{width:220px} .ain{width:104px;text-align:right}
+.csel{max-width:210px}
+.x{width:26px;height:26px;border-radius:6px;border:1px solid transparent;background:none;cursor:pointer;color:var(--faint);font-size:15px;line-height:1}
+.x:hover{border-color:var(--red);color:var(--red)}
+.empty{padding:36px;text-align:center;color:var(--muted)}
+.empty .btn{margin-top:10px}
+.sec2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+@media (max-width:1100px){.sec2{grid-template-columns:1fr}}
+.note{font-size:12px;color:var(--faint);line-height:1.55;margin-top:8px}
+.note b{color:var(--muted)}
+/* botón copiar código */
+.cp{display:inline-flex;align-items:center;gap:3px;border:1px solid transparent;background:none;color:inherit;font:inherit;padding:1px 4px;margin:-1px 0;border-radius:5px;cursor:copy;white-space:nowrap}
+.cp::after{content:"";width:11px;height:11px;flex:none;opacity:.35;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 1h8a2 2 0 0 1 2 2v8h-2V3H5z'/%3E%3Crect x='1' y='5' width='10' height='10' rx='2'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 1h8a2 2 0 0 1 2 2v8h-2V3H5z'/%3E%3Crect x='1' y='5' width='10' height='10' rx='2'/%3E%3C/svg%3E") center/contain no-repeat}
+.cp:hover{border-color:var(--line);background:var(--panel)} .cp:hover::after{opacity:.9}
+.cp.ok{border-color:var(--green);color:var(--green)}
+/* mis RQ, selección múltiple y deshacer */
+.gname{font:600 15px var(--f-head);flex:1 1 260px;min-width:200px;background:transparent;border-color:transparent;padding:3px 6px;margin-left:-6px}
+.gname:hover{border-color:var(--line);background:var(--panel2)}
+.x.r:hover{border-color:var(--brand);color:var(--brand)}
+.hint{font-size:12px;color:var(--faint);line-height:1.5} .hint b{color:var(--muted)}
+.t tr.gr td{background:var(--panel2);font-size:12.5px;border-top:1px solid var(--line);position:sticky;top:31px;z-index:1}
+.t tr.gr .btn{margin-left:8px}
+.selbar select{color:var(--text);background:var(--panel);border:0;border-radius:7px;padding:4px 8px;max-width:240px}
+.toast .btn{background:transparent;color:inherit;border-color:color-mix(in srgb,currentColor 40%,transparent);margin-left:8px}
+.sec32{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;margin-bottom:12px}
+@media (max-width:1100px){.sec32{grid-template-columns:1fr}}
+/* buscador para agregar, encabezados ordenables, grupos de saldos */
+.addw{position:relative;flex:1 1 340px;max-width:560px} .addw input{width:100%}
+.sug{position:absolute;top:calc(100% + 4px);left:0;z-index:12;width:min(720px,92vw);max-height:400px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.sgi{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}
+.sgi.on,.sgi:hover{background:var(--brand-soft)} .sgi.ya .sga{color:var(--green)}
+.sgm{display:flex;flex-direction:column;align-items:flex-end;gap:2px} .sga{font-size:12px;font-weight:600;color:var(--brand);white-space:nowrap}
+.t th[data-sk],.t th[data-ss]{cursor:pointer} .t th[data-sk]:hover,.t th[data-ss]:hover{color:var(--brand)}
+button.chip{font-family:inherit;color:inherit} button.chip:disabled{opacity:.45;cursor:default}
+.t tr.gr[data-sg]{cursor:pointer} .tw{display:inline-block;width:14px;color:var(--faint)}
+.why{font-size:12.5px;color:var(--muted);line-height:1.6;padding:10px 14px;border-top:1px solid var(--line);background:var(--panel3)}
+/* panel de detalle */
+.ov{position:fixed;inset:0;background:rgba(10,16,24,.35);z-index:20}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(780px,100vw);background:var(--bg);border-left:1px solid var(--line);z-index:21;overflow:auto;transform:translateX(100%);transition:transform .16s ease}
+.drawer.open{transform:none}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.dh{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 18px;padding-top:max(14px,env(safe-area-inset-top,0px));padding-right:max(18px,env(safe-area-inset-right,0px));z-index:2}
+.dh h2{margin:0;font:600 17px/1.3 var(--f-head);padding-right:44px}
+.dh .xc{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:max(10px,env(safe-area-inset-top,0px))}
+.db{padding:14px 18px;display:grid;gap:12px}
+.sec{padding:12px 14px}
+.sec h4{margin:0 0 8px;font:600 12px var(--f-head);color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.why{background:var(--panel2);border-radius:8px;padding:8px 11px;font-size:13px;line-height:1.55;margin-bottom:10px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px 14px}
+.kv div{display:flex;flex-direction:column}
+.kv b{font-size:15.5px;font-variant-numeric:tabular-nums}
+.kv span{font-size:12px;color:var(--faint)}
+.mini-w{overflow-x:auto}
+.mini{width:100%;border-collapse:collapse;font-size:12.5px}
+.mini th{text-align:left;color:var(--faint);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.mini td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top;font-variant-numeric:tabular-nums}
+.mini td.n,.mini th.n{text-align:right}
+.calc{font-size:13px;line-height:1.75}
+.calc code{background:var(--panel2);border-radius:4px;padding:1px 5px}
+svg.bars rect.b{fill:var(--bar)} svg.bars rect.b.hi{fill:var(--bar-hi)}
+svg.bars text{fill:var(--faint);font-size:9px} svg.bars line.base{stroke:var(--line)}
+.toast{position:fixed;left:50%;bottom:max(70px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .nin{width:160px} .ctl input[type=search],.ctl input[type=text]{min-width:0;flex:1 1 100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Repuestos por llave · operación de buses</h1>
+    <div class="sub" id="sub"></div>
+  </div>
+  <div class="hbtn">
+    <button class="btn" id="bUndo" disabled title="Nada que deshacer">↶ Deshacer</button>
+    <button class="btn" id="bRedo" disabled title="Nada que rehacer">↷ Rehacer</button>
+    <button class="btn" id="bParams" aria-expanded="false">⚙ Parámetros</button>
+    <button class="btn" id="bCsv">⬇ Exportar vista (CSV)</button>
+    <button class="btn" id="bTheme" title="Cambiar tema claro u oscuro">◐ Tema</button>
+  </div>
+</header>
+
+<section class="card params" id="params" hidden>
+  <div class="pgrid">
+    <label>Base de la demanda mensual
+      <select id="pBase"><option value="p12">Promedio 12 meses</option><option value="p6">Promedio 6 meses</option><option value="p3">Promedio 3 meses</option><option value="max">El mayor de 12/6/3</option></select></label>
+    <label>Cobertura a comprar sobre el punto de reorden (meses)<input type="number" id="pCob" min="0" step="0.5"></label>
+    <label>Sobrestock si la cobertura del stock supera (meses)<input type="number" id="pSob" min="1" step="1"></label>
+    <label>Demanda esporádica: meses con consumo en 12M ≤<input type="number" id="pEsp" min="0" max="12" step="1"></label>
+    <label>Lead time nacional por defecto (días)<input type="number" id="pLtN" min="1" step="1"></label>
+    <label>Lead time importación por defecto (días)<input type="number" id="pLtI" min="1" step="1"></label>
+    <label>Lead time mínimo (días)<input type="number" id="pLtMin" min="0" step="1"></label>
+    <label>Reservar presupuesto para (meses que quedan del año)<input type="number" id="pMrest" min="0" step="0.25"></label>
+    <label>Factor IGV para comparar con el presupuesto<input type="number" id="pIgv" min="1" step="0.01"></label>
+    <label class="chk"><input type="checkbox" id="pLtOwn"> Usar el lead time real de cada llave (Odoo)</label>
+    <label class="chk"><input type="checkbox" id="pRq"> Contar RQ sin OC en el tránsito</label>
+    <div id="pGrupos" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)">Stock que cuenta como disponible</div>
+  </div>
+  <div class="pnote">Los parámetros cambian el estado y la cantidad sugerida de todas las llaves al instante y se guardan en este navegador.
+    La demanda y el tránsito son solo de la operación (almacenes TATSA Mantenimiento, Préstamos, TVL; centros TA01432/TR01432/TR01421). Presupuesto = solo <span id="pCentro"></span>.</div>
+</section>
+
+<nav class="tabs" role="tablist">
+  <button class="tab on" data-t="rep" role="tab" aria-selected="true"><span class="st">1</span>Elegir repuestos<span class="cnt" id="cRep"></span></button>
+  <button class="tab" data-t="rq" role="tab" aria-selected="false"><span class="st">2</span>Armar RQ<span class="cnt" id="cRq"></span></button>
+  <button class="tab" data-t="fon" role="tab" aria-selected="false"><span class="st">3</span>Fondos<span class="cnt" id="cFon"></span></button>
+</nav>
+
+<!-- 1. ELEGIR REPUESTOS -->
+<div id="v-rep">
+  <section class="kpis" id="kpis"></section>
+  <section class="card filters">
+    <input type="search" id="q" placeholder="Buscar llave, código, nombre, nro. de parte, marca o proveedor…  ( / )" aria-label="Buscar">
+    <select id="fFam" aria-label="Familia"></select>
+    <select id="fSis" aria-label="Sistema"></select>
+    <select id="fRep" aria-label="Reparación o subgrupo"></select>
+    <select id="fUso" aria-label="Uso"></select>
+    <label class="chk" style="font-size:12px"><input type="checkbox" id="fPpto"> Con presupuesto</label>
+    <label class="chk" style="font-size:12px"><input type="checkbox" id="fImp"> Importación</label>
+    <label class="chk" style="font-size:12px"><input type="checkbox" id="fMulti"> Varios códigos</label>
+    <label class="chk" style="font-size:12px"><input type="checkbox" id="fCart"> Solo las del RQ</label>
+    <button class="btn sm ghost" id="bReset">Limpiar filtros</button>
+  </section>
+  <div class="row2">
+    <section class="card box">
+      <div class="hrow"><h3 style="margin:0">Estado</h3><button class="btn sm ghost" id="bLeg" aria-expanded="false">¿Cómo se calcula el estado?</button></div>
+      <div class="chips" id="chips" style="margin-top:8px"></div>
+      <div class="leg" id="leg" hidden></div>
+    </section>
+    <section class="card box mx"><h3>ABC (valor 12M) × XYZ (variabilidad)</h3><table id="mx"></table></section>
+  </div>
+  <section class="card">
+    <div class="tbl"><table class="t" id="t"><thead></thead><tbody></tbody></table></div>
+    <div class="foot"><span id="cnt"></span>
+      <button class="btn sm" id="bAddView">+ Agregar todas las de la vista al RQ</button>
+      <div class="pager"><button class="btn sm" id="pPrev" aria-label="Página anterior">‹</button><span id="pg"></span><button class="btn sm" id="pNext" aria-label="Página siguiente">›</button>
+        <select id="pSize" class="btn sm" aria-label="Filas por página"><option>50</option><option selected>100</option><option>250</option></select></div></div>
+  </section>
+</div>
+
+<!-- 2. ARMAR RQ -->
+<div id="v-rq" hidden>
+  <section class="card box" style="margin-bottom:12px">
+    <div class="sum" id="rqSum"></div>
+    <div class="ctl">
+      <span class="lbl">Agrupar por</span><span class="chips" id="gBy"></span>
+      <button class="btn sm" id="rqFix" title="Los grupos actuales pasan a ser tus RQ: los puedes renombrar, juntar o dividir moviendo líneas">Ajustar a mi criterio</button>
+      <button class="btn sm" id="rqNew">+ Nuevo RQ</button>
+      <span class="sp"></span>
+      <label class="lbl">Ordenar por <select id="rqSort" class="sel"></select></label>
+      <button class="btn sm" id="rqDir" title="Cambiar entre mayor a menor y menor a mayor"></button>
+    </div>
+    <div class="ctl">
+      <span class="addw"><input type="text" id="rqAdd" placeholder="Agregar repuesto: escribe parte del nombre, la llave o un código" aria-label="Buscar un repuesto para agregarlo al RQ" autocomplete="off">
+        <div class="sug" id="rqSugBox" role="listbox" hidden></div></span>
+      <span class="sp"></span>
+      <button class="btn sm" id="rqCopy">Copiar todo</button>
+      <button class="btn sm" id="rqCsv">⬇ CSV</button>
+      <button class="btn sm pri" id="rqFon">Buscar fondos →</button>
+      <button class="btn sm ghost" id="rqReset" title="Vuelve cantidad, precio, código y nota de todas las líneas a lo sugerido">Restablecer a lo sugerido</button>
+      <button class="btn sm ghost" id="rqClear">Vaciar RQ</button>
+    </div>
+    <div class="hint" id="rqHint" style="margin-top:8px"></div>
+    <div class="ctl"><span class="lbl">Agregar sugeridas (respetan los filtros de la pestaña 1):</span><span class="chips" id="rqSug"></span></div>
+  </section>
+  <div id="groups"></div>
+</div>
+
+<!-- 3. FONDOS -->
+<div id="v-fon" hidden>
+  <section class="card box" style="margin-bottom:12px">
+    <div class="hrow"><span class="chips" id="fScope"></span></div>
+    <div class="sum" id="fSum" style="margin-top:8px"></div>
+    <div class="prog" title="Déficit cubierto con los saldos elegidos"><i id="fProg" style="width:0"></i></div>
+    <div class="note" id="fNote"></div>
+  </section>
+  <div class="sec32">
+    <section class="card"><div class="box hrow"><h3 style="margin:0">Lo que pide el RQ y su saldo</h3><button class="btn sm pri" id="bNecCopy">Copiar todo</button></div>
+      <div class="tbl" style="max-height:460px"><table class="t" id="tNec"></table></div></section>
+    <section class="card"><div class="box hrow"><h3 style="margin:0">Redistribución resultante (origen → destino)</h3>
+      <button class="btn sm pri" id="bPlanCopy">Copiar redistribución</button></div>
+      <div class="tbl" style="max-height:460px"><table class="t" id="tPlan"></table></div></section>
+  </div>
+  <section class="card">
+    <div class="box">
+      <div class="hrow"><h3 style="margin:0">Saldos disponibles: marca de dónde sacar el dinero</h3>
+        <span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="btn sm pri" id="bSug">Sugerir fuentes</button><button class="btn sm ghost" id="bSelClr">Quitar selección</button></span></div>
+      <div class="hint" style="margin-top:4px">Qué aparece aquí: los SKU con línea de presupuesto cuyo saldo se puede mover <b>sin dejar a su propio repuesto sin dinero</b> para lo que consume hasta fin de año.
+        Un repuesto con el presupuesto ya gastado no aparece. Los repuestos de tu RQ tampoco (reciben dinero, no lo ceden), salvo sus otros códigos con saldo.</div>
+      <div class="ctl" style="margin-top:8px">
+        <input type="search" id="sQ" placeholder="Buscar SKU, llave, repuesto, marca o familia" aria-label="Buscar fuentes">
+        <label class="lbl">Motivo <select id="sPr" class="sel"></select></label>
+        <label class="lbl" title="Los saldos pequeños se ocultan de la lista y tampoco los usa “Sugerir fuentes”">Ocultar saldos menores a S/ <input class="in" type="number" id="sMin" min="0" step="50" style="width:76px;text-align:right"></label>
+        <label class="chk" style="font-size:12px"><input type="checkbox" id="sSame"> Preferir el mismo sistema del RQ</label>
+        <label class="chk" style="font-size:12px"><input type="checkbox" id="sSolo"> Solo las marcadas</label>
+      </div>
+      <div class="ctl"><span class="lbl">Agrupar por</span><span class="chips" id="sGrp"></span><span class="sp"></span><span class="hint">Clic en un encabezado de la tabla para ordenar de mayor a menor.</span></div>
+    </div>
+    <div class="tbl" style="max-height:620px"><table class="t" id="tSrc"></table></div>
+    <div class="why" id="sWhy" hidden></div>
+    <div class="foot"><span id="sCnt"></span></div>
+  </section>
+</div>
+</div>
+
+<div class="selbar" id="selbar" hidden></div>
+<div class="selbar" id="bulkbar" hidden></div>
+<div class="selbar" id="fonbar" hidden></div>
+<div class="ov" id="ov" hidden></div>
+<aside class="drawer" id="dr" aria-label="Detalle de la llave"></aside>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const D = /*__DATOS__*/null;
+const M = D.meta, F = D.filas;
+const IDX = new Map(F.map((r,i)=>[r.k,i])), BYK = k => F[IDX.get(k)];
+const COD2K = new Map(); F.forEach(r=>r.cod.forEach(c=>COD2K.set(c.c.toLowerCase(), r.k)));
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => s == null ? "" : String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf0 = new Intl.NumberFormat("es-PE",{maximumFractionDigits:0}), nf1 = new Intl.NumberFormat("es-PE",{maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const ok = v => v!=null && isFinite(v);
+const n0 = v => ok(v) ? nf0.format(v) : "–", n1 = v => ok(v) ? nf1.format(v) : "–";
+const sol = v => ok(v) ? "S/ "+nf0.format(v) : "–", sol2 = v => ok(v) ? "S/ "+nf2.format(v) : "–";
+const qty = (v,um) => v==null ? "–" : (um && um!=="Unidades" ? nf2.format(v) : nf1.format(v));
+const fdate = s => s ? s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(2,4) : "–";
+const sum = (a,f) => a.reduce((s,x)=>s+(f(x)||0),0);
+const roundU = (v,um) => (um && um!=="Unidades") ? Math.round(v*100)/100 : Math.ceil(v-1e-9);
+const cp = (v, bold=false) => v ? `<button type="button" class="cp" data-cp="${esc(v)}" title="Copiar ${esc(v)}">${bold?`<b>${esc(v)}</b>`:esc(v)}</button>` : "";
+const Z = {A:1.65,B:1.28,C:1.04};
+const EST = {COMPRAR:["COMPRAR","b-COMPRAR"],EVALUAR:["EVALUAR","b-EVALUAR"],APURAR:["APURAR TRÁNSITO","b-APURAR"],OK:["OK","b-OK"],
+  SOBRESTOCK:["SOBRESTOCK","b-SOBRESTOCK"],SINROT:["SIN ROTACIÓN","b-SINROT"],TRANSITO:["TRÁNSITO SIN CONSUMO","b-TRANSITO"],INACTIVO:["INACTIVO","b-INACTIVO"]};
+const ORDEN_EST = ["COMPRAR","EVALUAR","APURAR","SOBRESTOCK","SINROT","TRANSITO","OK","INACTIVO"];
+const PRIO = {0:"Mismo repuesto, otro código",1:"Sin consumo en 12 meses",2:"Sobrestock",3:"Excedente (stock en nivel)",4:"Excedente (tránsito en curso)",5:"Excedente tras su propia compra"};
+
+// ---------- parámetros ----------
+const DEF = {base:"p12",cob:2,sob:6,espor:3,ltMin:7,ltN:M.lt_general||30,ltI:90,ltOwn:true,rq:true,mrest:M.meses_rest||0,igv:1.18,
+  grupos:{"TATSA":true,"Préstamos":true,"TVL":true,"Proyectos":false}};
+let P = JSON.parse(JSON.stringify(DEF));
+try { const s = JSON.parse(localStorage.getItem("rep_params_v2")||"null"); if (s) P = {...P, ...s, grupos:{...DEF.grupos, ...(s.grupos||{})}}; } catch(e) {}
+const saveP = () => { try { localStorage.setItem("rep_params_v2", JSON.stringify(P)); } catch(e) {} };
+const BASE_TXT = {p12:"promedio de los últimos 12 meses",p6:"promedio de los últimos 6 meses",p3:"promedio de los últimos 3 meses",max:"el mayor promedio entre 12, 6 y 3 meses"};
+
+// ---------- cálculo por llave ----------
+function calc(r){
+  const dem = P.base==="max" ? Math.max(r.p12||0,r.p6||0,r.p3||0) : (r[P.base]||0);
+  const stock = M.grupos.reduce((a,g)=> a + (P.grupos[g] ? (r.st[g]||0) : 0), 0);
+  const stockVal = M.grupos.reduce((a,g)=> a + (P.grupos[g] ? (r.sv[g]||0) : 0), 0);
+  const tr = (r.oc||0) + (P.rq ? (r.rq||0) : 0);
+  const imp = !!(r.sx || (r.ext && !r.pvn));
+  const lt = Math.max(P.ltMin, (P.ltOwn && r.lt) ? r.lt : (imp ? P.ltI : P.ltN));
+  const ss = (Z[r.abc]||0) * (r.sd||0) * Math.sqrt(lt/30);
+  const rop = dem*lt/30 + ss, max = rop + dem*P.cob, pos = stock + tr;
+  const cob = dem>0 ? stock/dem : (stock>0 ? Infinity : null);
+  const unit = stock>0 && stockVal>0 ? stockVal/stock : null;
+  const precio = r.prn || r.upr || r.pp12 || unit;
+  let e, sug = 0, exc = 0, esp = false;
+  if (dem <= 0) e = stock>0 ? "SINROT" : (tr>0 ? "TRANSITO" : "INACTIVO");
+  else if (pos < rop - 1e-9) {
+    esp = (r.m12||0) <= P.espor || (r.p6||0) === 0;
+    e = esp ? "EVALUAR" : "COMPRAR";
+    sug = roundU(max - pos, r.um);
+  } else if (stock < rop - 1e-9) e = "APURAR";
+  else if (cob > P.sob) { e = "SOBRESTOCK"; exc = stock - dem*P.sob; }
+  else e = "OK";
+  const prov = r.pvp || r.pvn || r.upv || null;
+  // presupuesto [TA01432] REPUESTOS / REPUESTOS: lo movible de un SKU es el menor entre su saldo real y lo que Odoo deja mover
+  const sk = (r.pr||[]).map(x=>({...x, mov: Math.max(0, Math.min(x.sa??0, x.do??0))}));
+  const tgt = sk.length ? sk[0].c : (r.hc[0]?.c || r.cod[0]?.c);
+  const ppL = sum(sk,x=>x.pp), saL = sum(sk,x=>x.sa), movL = sum(sk,x=>x.mov);
+  const needU = dem>0 ? Math.max(0, dem*P.mrest + ss - stock - tr) : 0;
+  const compra = (e==="COMPRAR"||e==="EVALUAR") ? sug*(precio||0)*P.igv : 0;
+  const reserva = Math.max(needU*(precio||0)*P.igv, compra);
+  const lib = Math.max(0, movL - reserva);
+  r.c = {dem,stock,tr,lt,ltSrc:(P.ltOwn&&r.lt)?"real de Odoo":(imp?"por defecto, importación":"por defecto, nacional"),ss,rop,max,pos,cob,precio,unit,e,esp,sug,imp,prov,
+         vsug:sug*(precio||0), exc, vexc:exc*(unit||precio||0), vstock:stockVal, sk,tgt,ppL,saL,movL,reserva,lib};
+}
+const recalc = () => F.forEach(calc);
+
+// Explicación en palabras, con los números de la llave
+function porque(r){
+  const c=r.c, u=r.um, q=v=>qty(v,u), lt=n0(c.lt);
+  const base = `stock ${q(c.stock)} + tránsito ${q(c.tr)} = <b>${q(c.pos)}</b>; punto de reorden <b>${q(c.rop)}</b> (lo que se consume mientras llega una compra: ${q(c.dem)}/mes × ${lt} días + seguridad ${q(c.ss)})`;
+  switch (c.e){
+    case "INACTIVO": return "No se consumió en buses en los últimos 12 meses y no tiene stock ni pedidos.";
+    case "SINROT": return `No se consumió en buses en los últimos 12 meses, pero hay <b>${q(c.stock)}</b> en stock (${sol(c.vstock)} inmovilizados).`;
+    case "TRANSITO": return `No se consumió en buses en los últimos 12 meses, pero hay <b>${q(c.tr)}</b> pedidos (OC por entregar o RQ sin OC). Revisar si hacen falta.`;
+    case "COMPRAR": return `Lo que hay más lo pedido no alcanza: ${base}. Comprar ${q(c.sug)} deja el nivel en reorden + ${n1(P.cob)} meses de consumo.`;
+    case "EVALUAR": return `Faltaría (${base}), pero la demanda es esporádica: consumo en ${r.m12||0} de 12 meses${(r.p6||0)===0?" y nada en los últimos 6":""}. Confirmar antes de comprar; la cantidad es referencial.`;
+    case "APURAR": return `Lo pedido sí alcanza (${q(c.pos)} ≥ reorden ${q(c.rop)}), pero el stock físico <b>${q(c.stock)}</b> ya está por debajo del reorden: hay que apurar la entrega de la OC.`;
+    case "SOBRESTOCK": return `El stock <b>${q(c.stock)}</b> cubre ${n1(c.cob)} meses de consumo (más de ${P.sob}). Sobran ${q(c.exc)} ≈ ${sol(c.vexc)}.`;
+    default: return `Stock ${q(c.stock)} sobre el punto de reorden ${q(c.rop)}; cubre ${c.cob===Infinity?"∞":n1(c.cob)} meses de consumo.`;
+  }
+}
+const sinTags = s => s.replace(/<[^>]+>/g,"");
+const estBadge = r => `<span class="badge ${EST[r.c.e][1]}" title="${esc(sinTags(porque(r)))}">${EST[r.c.e][0]}</span>`;
+
+function leyenda(){
+  return `Cada llave compara <b>lo que hay</b> (stock de ${M.grupos.filter(g=>P.grupos[g]).join(", ")} + lo pedido: OC por entregar${P.rq?" y RQ sin OC":""}) con <b>lo que se consume mientras llega una compra</b>:
+  <ol>
+    <li><b>Demanda</b> = ${BASE_TXT[P.base]} de consumo a buses (salidas − devoluciones, solo almacenes de la operación).</li>
+    <li><b>Lead time</b> = días reales del RQ a la recepción en Odoo (mediana de la llave, mínimo ${P.ltMin} días). Si no hay historial: ${n0(P.ltN)} días nacional, ${n0(P.ltI)} importación.</li>
+    <li><b>Stock de seguridad</b> = Z × variación mensual del consumo × √(lead time / 30). Z según la importancia ABC: A <code>1.65</code>, B <code>1.28</code>, C <code>1.04</code>.</li>
+    <li><b>Punto de reorden</b> = demanda × lead time / 30 + stock de seguridad.</li>
+  </ol>
+  Luego se revisa en este orden y se queda con el primero que se cumple:
+  <ol>
+    <li>Sin consumo en 12 meses → <span class="badge b-SINROT">SIN ROTACIÓN</span> si tiene stock, <span class="badge b-TRANSITO">TRÁNSITO SIN CONSUMO</span> si solo hay pedidos, <span class="badge b-INACTIVO">INACTIVO</span> si no hay nada.</li>
+    <li>Stock + tránsito &lt; punto de reorden → <span class="badge b-COMPRAR">COMPRAR</span>. Cantidad = reorden + demanda × ${n1(P.cob)} meses − (stock + tránsito).
+      Si se consumió en ${P.espor} meses o menos de 12, o nada en los últimos 6 → <span class="badge b-EVALUAR">EVALUAR</span> (demanda esporádica).</li>
+    <li>Lo pedido alcanza pero el stock físico está bajo el reorden → <span class="badge b-APURAR">APURAR TRÁNSITO</span>.</li>
+    <li>El stock cubre más de ${P.sob} meses → <span class="badge b-SOBRESTOCK">SOBRESTOCK</span>.</li>
+    <li>Lo demás → <span class="badge b-OK">OK</span>.</li>
+  </ol>
+  Pasa el mouse sobre el estado de cualquier llave para ver su cálculo, o ábrela para el detalle. Los números se ajustan en ⚙ Parámetros.`;
+}
+
+// ---------- RQ en armado (queda guardado en este navegador) ----------
+const CART = new Map();              // llave -> {q, c (código a pedir), p (precio editado), n (nota), g (mi RQ)}
+const RQ = {by:"prov", grupos:[], sort:"", dir:-1};   // agrupación; grupos = nombres de "mis RQ" en orden (cuando by === "mio")
+const SELRQ = new Set();             // líneas marcadas en la pestaña 2 (para mover, quitar o restablecer varias)
+const FD = {scope:"", sel:new Map(), q:"", pr:"", same:false, solo:false, min:100, sort:"", dir:-1, grp:"", open:new Set()};   // fondos: SKU origen -> monto elegido
+const estado = () => JSON.stringify({cart:[...CART], sel:[...FD.sel], by:RQ.by, grupos:RQ.grupos, scope:FD.scope});
+function aplicar(txt){ const o=JSON.parse(txt);
+  CART.clear(); (o.cart||[]).forEach(([k,L])=>{ if (IDX.has(k)) CART.set(k,L); });
+  FD.sel.clear(); (o.sel||[]).forEach(([id,a])=>FD.sel.set(id,a));
+  RQ.by = GBY[o.by] ? o.by : "prov"; RQ.grupos = o.grupos||[]; FD.scope = o.scope||""; }
+function guardar(){ try{ localStorage.setItem("rep_rq_v1", estado()); }catch(e){} }
+function cargar(){ try{ const t=localStorage.getItem("rep_rq_v1"); if (t) aplicar(t); }catch(e){} }
+
+// Deshacer / rehacer: antes de cada cambio se guarda una foto del RQ, de mis RQ y de los saldos elegidos
+const HIST = [], REDO = [];
+function punto(desc){ const t=estado(), u=HIST[HIST.length-1];
+  if (u && u.s===t) u.d=desc; else { HIST.push({s:t, d:desc}); if (HIST.length>200) HIST.shift(); }
+  REDO.length=0; pintaUndo(); }
+// En los campos de texto se guarda un solo punto por edición (no uno por tecla)
+function editando(i, desc){ if (i._p) return; punto(desc); i._p=true; i.addEventListener("blur",()=>{ i._p=false; },{once:true}); }
+function deshacer(){ const cur=estado(); let h; do { h=HIST.pop(); } while (h && h.s===cur);
+  if (!h) { pintaUndo(); return toast("Nada que deshacer"); }
+  REDO.push({s:cur, d:h.d}); aplicar(h.s); guardar(); trasHist(`Deshecho: ${h.d}`); }
+function rehacer(){ const h=REDO.pop(); if (!h) return toast("Nada que rehacer");
+  HIST.push({s:estado(), d:h.d}); aplicar(h.s); guardar(); trasHist(`Rehecho: ${h.d}`); }
+function trasHist(m){ SELRQ.clear(); if (ABIERTA) abrir(ABIERTA); refrescar(); pintaUndo(); toast(m); }
+function pintaUndo(){ const u=$("#bUndo"), r=$("#bRedo"); u.disabled=!HIST.length; r.disabled=!REDO.length;
+  u.title = HIST.length ? `Deshacer: ${HIST[HIST.length-1].d} (Ctrl+Z)` : "Nada que deshacer";
+  r.title = REDO.length ? `Rehacer: ${REDO[REDO.length-1].d} (Ctrl+Y)` : "Nada que rehacer"; }
+
+const defQ = r => r.c.sug>0 ? r.c.sug : Math.max(1, roundU(r.c.dem*P.cob, r.um));
+function agregar(r){ if (!CART.has(r.k)) CART.set(r.k, {q:defQ(r), c:r.c.tgt, p:null, n:null}); }
+function restablecer(k){ const r=BYK(k), L=CART.get(k); if (!L) return; L.q=defQ(r); L.c=r.c.tgt; L.p=null; L.n=null; }
+const modificada = (r,L) => L.q!==defQ(r) || L.p!=null || L.n!=null || L.c!==r.c.tgt;
+function vaciar(){ if (!CART.size) return; const n=CART.size; punto("vaciar el RQ"); CART.clear(); FD.sel.clear(); SELRQ.clear(); guardar(); render(); toast(`${n} llaves quitadas del RQ`, true); }
+function notaDe(r){ return r.c.e==="EVALUAR" ? "EVALUAR - DEMANDA ESPORÁDICA" : (r.c.stock<=0 ? "CORRECTIVO - SIN STOCK" : "STOCK DE SEGURIDAD"); }
+function lin(k){
+  const r=BYK(k), L=CART.get(k), pr = L.p ?? r.c.precio ?? 0;
+  const sk = r.c.sk.find(x=>x.c===L.c);
+  const propio = sk ? Math.max(0, Math.min(sk.sa??0, sk.do??sk.sa??0)) : 0;
+  const monto = (L.q||0)*pr, igv = monto*P.igv;
+  return {r, L, k, pr, sk, propio, monto, igv, usaPropio:Math.min(propio, igv), def:Math.max(0, igv-propio),
+          cobDesp: r.c.dem>0 ? (r.c.stock + r.c.tr + (L.q||0))/r.c.dem : null, nota: L.n ?? notaDe(r)};
+}
+const lineas = () => [...CART.keys()].map(lin);
+const prodDe = x => (x.r.cod.find(o=>o.c===x.L.c)?.n) || x.r.n;
+
+// Tránsito de la operación de una llave: OC por entregar y RQ sin OC (con sus documentos al pasar el mouse)
+function transito(r){ return {oc:r.oc||0, rq:r.rq||0, ocs:r.toc.filter(x=>!x.p), rqs:r.trq.filter(x=>!x.p)}; }
+function trHtml(r){ const t=transito(r), um=r.um; if (!t.oc && !t.rq) return '<span class="muted">–</span>';
+  const tip = [...t.ocs.map(x=>`${x.oc}${x.rq?" ("+x.rq+")":""}: ${qty(x.q,um)} · prevista ${fdate(x.fp)}${x.at>0?` · ${x.at} d de atraso`:""}`),
+               ...t.rqs.map(x=>`${x.rq} sin OC: ${qty(x.q,um)} · ${x.d??"?"} d desde su aprobación`)].join("\n");
+  return `<span title="${esc(tip)}" style="cursor:help;white-space:nowrap">${t.oc?`<span class="tag">OC ${qty(t.oc,um)}</span>`:""}${t.oc&&t.rq?" ":""}${t.rq?`<span class="tag warn">RQ ${qty(t.rq,um)}</span>`:""}</span>`; }
+
+// ---------- filtros de la pestaña 1 ----------
+const S = {q:"",est:new Set(),fam:"",sis:"",rep:"",uso:"",abc:"",xyz:"",ppto:false,imp:false,multi:false,cart:false,sort:"v12",dir:-1,page:0,size:100};
+function opts(sel, campo, titulo){
+  const cnt = {}; F.forEach(r => { const v = r[campo] || "(sin dato)"; cnt[v]=(cnt[v]||0)+1; });
+  const ks = Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
+  $(sel).innerHTML = `<option value="">${titulo}: todos</option>` + ks.map(k=>`<option value="${esc(k)}">${esc(k)} (${cnt[k]})</option>`).join("");
+}
+function pasa(r, ign){
+  if (S.q){ const hay = (r.k+" "+r.n+" "+(r.c.prov||"")+" "+r.cod.map(c=>c.c+" "+(c.n||"")+" "+(c.p||"")+" "+(c.m||"")).join(" ")).toLowerCase();
+    if (!S.q.split(/\s+/).every(w=>hay.includes(w))) return false; }
+  if (ign!=="est" && S.est.size && !S.est.has(r.c.e)) return false;
+  if (S.fam && (r.f||"(sin dato)")!==S.fam) return false;
+  if (S.sis && (r.f2||"(sin dato)")!==S.sis) return false;
+  if (S.rep && (r.f3||"(sin dato)")!==S.rep) return false;
+  if (S.uso && (r.u||"(sin dato)")!==S.uso) return false;
+  if (ign!=="mx" && S.abc && r.abc!==S.abc) return false;
+  if (ign!=="mx" && S.xyz && r.xyz!==S.xyz) return false;
+  if (S.ppto && !r.c.sk.length) return false;
+  if (S.imp && !r.c.imp) return false;
+  if (S.multi && r.cod.length<2) return false;
+  if (S.cart && !CART.has(r.k)) return false;
+  return true;
+}
+
+// ---------- KPIs ----------
+function kpis(){
+  const base = F.filter(r=>pasa(r,"est")), by = e => base.filter(r=>r.c.e===e);
+  const C=by("COMPRAR"), EV=by("EVALUAR"), A=by("APURAR"), SO=by("SOBRESTOCK"), SR=by("SINROT");
+  const cards = [
+    ["COMPRAR","k-red",n0(C.length),"llaves por comprar",sol(sum(C,r=>r.c.vsug))+" sin IGV"],
+    ["EVALUAR","k-brand",n0(EV.length),"evaluar (demanda esporádica)",sol(sum(EV,r=>r.c.vsug))+" si se repusiera todo"],
+    ["APURAR","k-amber",n0(A.length),"apurar tránsito","stock bajo el reorden, ya pedido"],
+    ["SOBRESTOCK","k-violet",n0(SO.length),"con sobrestock",sol(sum(SO,r=>r.c.vexc))+` sobre ${P.sob} meses`],
+    ["SINROT","k-gray",n0(SR.length),"sin rotación 12M",sol(sum(SR,r=>r.c.vstock))+" inmovilizado"],
+    [null,"k-teal",sol(sum(base,r=>r.c.vstock)),"stock de la operación","valor kardex sin IGV"],
+    [null,"k-green",sol(sum(base,r=>r.c.saL)),`saldo real ${M.centro}`,`${n0(base.filter(r=>r.c.sk.length).length)} llaves con presupuesto`],
+  ];
+  $("#kpis").innerHTML = cards.map(c=>`<${c[0]?"button":"div"} class="card kpi ${c[1]} ${c[0]&&S.est.has(c[0])?"sel":""}" ${c[0]?`data-e="${c[0]}" type="button"`:""}><div class="v">${c[2]}</div><div class="l">${c[3]}</div><div class="s">${c[4]}</div></${c[0]?"button":"div"}>`).join("");
+  $$(".kpi[data-e]").forEach(k=>k.onclick=()=>{const e=k.dataset.e; S.est.has(e)?S.est.delete(e):S.est.add(e); S.page=0; render();});
+}
+
+// ---------- 1. Elegir repuestos ----------
+const COLS = [
+  ["e","Estado",r=>`${estBadge(r)}${r.c.imp?' <span class="tag bad" title="Solo se ha comprado al exterior o la última compra fue importación">import.</span>':""}`, r=>ORDEN_EST.indexOf(r.c.e)],
+  ["k","Llave",r=>cp(r.k,true), r=>r.k],
+  ["n","Repuesto",r=>`<div class="nm">${esc(r.n)}</div><div class="cd">${r.cod.length>1?`<span class="tag">${r.cod.length} códigos</span> `:""}${esc(r.cod.slice(0,4).map(c=>c.c).join(", "))}${r.cod.length>4?"…":""} · ${esc(r.f2||r.f||"")}</div>`, r=>r.n, "name"],
+  ["abc","ABC-XYZ",r=>r.abc==="-"?'<span class="muted">sin consumo</span>':`<b>${r.abc}</b>-${r.xyz}`, r=>(r.abc==="-"?"Z":r.abc)+r.xyz],
+  ["dem","Prom./mes",r=>qty(r.c.dem,r.um), r=>r.c.dem, "n"],
+  ["stock","Stock",r=>qty(r.c.stock,r.um), r=>r.c.stock, "n"],
+  ["cob","Cobertura",r=>r.c.cob==null?"–":(r.c.cob===Infinity?"∞":n1(r.c.cob)+" m"), r=>r.c.cob===Infinity?1e9:(r.c.cob??-1), "n"],
+  ["tr","Tránsito",r=>trHtml(r), r=>(r.oc||0)+(r.rq||0), "n"],
+  ["rop","P. reorden",r=>r.c.dem>0?qty(r.c.rop,r.um):"–", r=>r.c.rop, "n"],
+  ["sug","Sugerido",r=>r.c.sug?`<b>${qty(r.c.sug,r.um)}</b>`:'<span class="muted">–</span>', r=>r.c.sug, "n"],
+  ["vsug","S/ sugerido",r=>r.c.vsug?sol(r.c.vsug):'<span class="muted">–</span>', r=>r.c.vsug, "n"],
+  ["v12","Consumo 12M",r=>r.v12?sol(r.v12):'<span class="muted">–</span>', r=>r.v12||0, "n"],
+  ["prov","Proveedor sugerido",r=>r.c.prov?`${esc(r.c.prov.slice(0,26))}<div class="cd">últ. ${fdate(r.uf)} · ${sol2(r.upr)}</div>`:'<span class="muted">sin compras</span>', r=>r.c.prov||"~"],
+  ["sa","Saldo ppto",r=>r.c.sk.length?`<span class="${r.c.saL<0?"neg":""}">${sol(r.c.saL)}</span>`:'<span class="muted">–</span>', r=>r.c.sk.length?r.c.saL:-1e12, "n"],
+];
+let vista = [], pagina = [];
+function head(){
+  $("#t thead").innerHTML = `<tr><th class="ck"><label title="Agregar o quitar toda la página del RQ"><input type="checkbox" id="selPage" aria-label="Seleccionar toda la página"></label></th>`
+    + COLS.map(c=>`<th class="${c[4]==="n"?"n":""}" data-k="${c[0]}">${c[1]}${S.sort===c[0]?` <span class="ar">${S.dir>0?"▲":"▼"}</span>`:""}</th>`).join("")+"</tr>";
+  $$("#t th[data-k]").forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(S.sort===k) S.dir*=-1; else {S.sort=k; S.dir=["k","n","abc","e","prov"].includes(k)?1:-1;} S.page=0; render();});
+  $("#selPage").onchange = e => { punto(e.target.checked?"agregar la página":"quitar la página"); pagina.forEach(r=> e.target.checked ? agregar(r) : CART.delete(r.k)); guardar(); pintaSel(); };
+}
+function renderRep(){
+  const col = COLS.find(c=>c[0]===S.sort);
+  vista = F.filter(r=>pasa(r)).sort((a,b)=>{const x=col[3](a), y=col[3](b); return (x>y?1:x<y?-1:0)*S.dir;});
+  const maxPg = Math.max(0, Math.ceil(vista.length/S.size)-1); if (S.page>maxPg) S.page = maxPg;
+  head();
+  pagina = vista.slice(S.page*S.size, S.page*S.size+S.size);
+  $("#t tbody").innerHTML = pagina.length ? pagina.map(r=>`<tr data-i="${IDX.get(r.k)}" data-k="${esc(r.k)}"><td class="ck"><label><input type="checkbox" data-sel="${esc(r.k)}" aria-label="Agregar ${esc(r.k)} al RQ"></label></td>`
+      + COLS.map(c=>`<td class="${c[4]||""}">${c[2](r)}</td>`).join("")+"</tr>").join("")
+    : `<tr><td colspan="${COLS.length+1}" class="empty">No hay llaves con estos filtros. Prueba quitando alguno.</td></tr>`;
+  $$("#t tbody tr[data-i]").forEach(tr=>tr.onclick=e=>{ if (e.target.closest(".ck,button,a,input")) return; abrir(F[+tr.dataset.i]); });
+  $$("#t [data-sel]").forEach(i=>i.onchange=()=>{ const r=BYK(i.dataset.sel); punto(`${i.checked?"agregar":"quitar"} ${r.k}`); i.checked ? agregar(r) : CART.delete(r.k); guardar(); pintaSel(); });
+  $("#pg").textContent = `${S.page+1} / ${maxPg+1}`;
+  $("#cnt").textContent = `${n0(vista.length)} llaves en la vista de ${n0(F.length)}`;
+  $("#bAddView").textContent = `+ Agregar las ${n0(vista.length)} de la vista al RQ`; $("#bAddView").disabled = !vista.length;
+  const base = F.filter(r=>pasa(r,"est")), cnt={}; base.forEach(r=>cnt[r.c.e]=(cnt[r.c.e]||0)+1);
+  $("#chips").innerHTML = ORDEN_EST.map(e=>`<span class="chip ${S.est.has(e)?"on":""}" data-e="${e}" role="button" tabindex="0">${EST[e][0]} · ${n0(cnt[e]||0)}</span>`).join("");
+  $$("#chips .chip").forEach(c=>c.onclick=()=>{const e=c.dataset.e; S.est.has(e)?S.est.delete(e):S.est.add(e); S.page=0; render();});
+  if (!$("#leg").hidden) $("#leg").innerHTML = leyenda();
+  const bm = F.filter(r=>pasa(r,"mx")), m={}; bm.forEach(r=>{m[r.abc+r.xyz]=(m[r.abc+r.xyz]||0)+1;});
+  const tot = bm.filter(r=>r.abc!=="-").length || 1;
+  const cel=(a,x)=>{const v=m[a+x]||0, al=Math.min(.85,.08+v/tot*3);
+    return `<td class="${S.abc===a&&S.xyz===x?"on":""}" data-a="${a}" data-x="${x}" style="background:color-mix(in srgb,var(--brand) ${Math.round(al*100)}%,transparent);color:${al>.45?"var(--on-brand)":"inherit"}">${n0(v)}</td>`;};
+  $("#mx").innerHTML = `<tr><th></th><th>X estable</th><th>Y media</th><th>Z errática</th></tr>`+["A","B","C"].map(a=>`<tr><th>${a}</th>${["X","Y","Z"].map(x=>cel(a,x)).join("")}</tr>`).join("")
+    +`<tr><th colspan="4" style="text-align:left;font-weight:400;padding-top:6px">Sin consumo 12M: ${n0(m["--"]||0)} · clic en una celda para filtrar</th></tr>`;
+  $$("#mx td[data-a]").forEach(td=>td.onclick=()=>{const a=td.dataset.a,x=td.dataset.x; if(S.abc===a&&S.xyz===x){S.abc="";S.xyz="";} else {S.abc=a;S.xyz=x;} S.page=0; render();});
+  pintaSel();
+}
+// Actualiza todo lo que depende de la selección sin redibujar la tabla (no se pierde la posición)
+function pintaSel(){
+  $$("#t [data-sel]").forEach(i=>{ const on=CART.has(i.dataset.sel); i.checked=on; i.closest("tr").classList.toggle("insel",on); });
+  const sp=$("#selPage"); if (sp){ const n=pagina.filter(r=>CART.has(r.k)).length; sp.checked = pagina.length>0 && n===pagina.length; sp.indeterminate = n>0 && n<pagina.length; }
+  const ls = lineas(), tot = sum(ls,x=>x.igv), def = sum(ls,x=>x.def);
+  $("#cRq").textContent = CART.size ? n0(CART.size) : ""; $("#cRq").classList.toggle("hot", CART.size>0);
+  const bar = $("#selbar");
+  bar.hidden = !CART.size || TAB!=="rep";
+  if (!bar.hidden) bar.innerHTML = `<span><b>${n0(CART.size)}</b> llave${CART.size>1?"s":""} en el RQ · <b>${sol(tot)}</b> con IGV${def>0.5?` · déficit <b>${sol(def)}</b>`:""}</span>
+    <button class="btn sm" id="sbOnly">${S.cart?"Ver todas":"Ver solo estas"}</button><button class="btn sm" id="sbClr">Vaciar</button><button class="btn sm pri" id="sbGo">Armar RQ →</button>`;
+  if (!bar.hidden){
+    $("#sbGo").onclick = () => tab("rq");
+    $("#sbOnly").onclick = () => { S.cart=!S.cart; $("#fCart").checked=S.cart; S.page=0; render(); };
+    $("#sbClr").onclick = vaciar;
+  }
+}
+
+// ---------- 2. Armar RQ ----------
+const SIN_RQ = "Sin asignar";
+const SIN_MARCA = /^(s\/m|s\/np|otros)?(\s*\(.*\))?$/i;
+const marcaDe = (r, cod) => { const m=(r.cod.find(o=>o.c===cod)?.m||"").trim(); return SIN_MARCA.test(m) ? "(sin marca)" : m.toUpperCase(); };
+const GBY = {prov:r=>r.c.prov||"Sin historial de compra (definir proveedor)", marca:(r,L)=>marcaDe(r,L.c), f2:r=>r.f2||"(sin sistema)", f3:r=>r.f3||"(sin dato)",
+  f:r=>r.f||"(sin dato)", no:()=>"Todas las líneas", mio:(r,L)=>L.g||SIN_RQ};
+const GBY_TXT = {prov:"proveedor sugerido", marca:"marca del código a pedir", f2:"sistema", f3:"reparación / subgrupo", f:"familia", no:"nada (una sola lista)"};
+const GBY_LBL = [["prov","Proveedor"],["marca","Marca"],["f","Familia"],["f2","Sistema"],["f3","Reparación"],["no","Sin agrupar"],["mio","★ Mis RQ"]];
+// columnas de la tabla del RQ: [clave, título, es número]; RQVAL da el valor por el que se ordena
+const RQCOLS = [["k","Llave"],["c","Código a pedir · marca"],["n","Repuesto"],["e","Estado"],["stock","Stock",1],["tr","En tránsito",1],["dem","Prom./mes",1],["sug","Sugerido",1],
+  ["q","Cantidad",1],["pr","Precio ref.",1],["monto","Monto",1],["igv","Con IGV",1],["saldo","Saldo SKU",1],["def","Déficit",1],["cob","Cobertura después",1],["nota","Nota"]];
+const RQNUM = new Set(RQCOLS.filter(c=>c[2]).map(c=>c[0]));
+const RQVAL = {k:x=>x.k, c:x=>marcaDe(x.r,x.L.c)+" "+x.L.c, n:x=>x.r.n, e:x=>ORDEN_EST.indexOf(x.r.c.e), stock:x=>x.r.c.stock, tr:x=>(x.r.oc||0)+(x.r.rq||0), dem:x=>x.r.c.dem, sug:x=>x.r.c.sug,
+  q:x=>x.L.q||0, pr:x=>x.pr, monto:x=>x.monto, igv:x=>x.igv, saldo:x=>x.sk?(x.sk.sa||0):-1e12, def:x=>x.def, cob:x=>x.cobDesp??-1, nota:x=>x.nota};
+const flecha = (act, dir) => act ? ` <span class="ar">${dir>0?"▲":"▼"}</span>` : "";
+const thRQ = () => RQCOLS.map(([k,l,n])=>`<th class="${n&&k!=="tr"?"n":""}" data-sk="${k}" title="${k==="cob"?"Meses que cubre stock + tránsito + esta compra. ":""}Clic para ordenar">${l}${flecha(RQ.sort===k, RQ.dir)}</th>`).join("");
+function gruposRQ(){
+  const g = new Map();
+  if (RQ.by==="mio") RQ.grupos.forEach(n=>g.set(n,[]));
+  lineas().forEach(x=>{ const k=GBY[RQ.by](x.r,x.L); if (!g.has(k)) g.set(k,[]); g.get(k).push(x); });
+  const out = [...g.entries()].map(([k,ls])=>({k, ls}));
+  if (RQ.sort){ const f=RQVAL[RQ.sort]; out.forEach(G=>G.ls.sort((a,b)=>{ const x=f(a), y=f(b); return (x>y?1:x<y?-1:0)*RQ.dir; })); }
+  return RQ.by==="mio" ? out.sort((a,b)=>(a.k===SIN_RQ)-(b.k===SIN_RQ)) : out.sort((a,b)=>sum(b.ls,x=>x.monto)-sum(a.ls,x=>x.monto));
+}
+// Convierte la agrupación que se ve en "mis RQ", para poder renombrar, juntar o dividir a mano
+function fijar(){ if (RQ.by==="mio") return;
+  const gs=gruposRQ(); gs.forEach(g=>g.ls.forEach(x=>{ x.L.g=g.k; })); RQ.grupos=gs.map(g=>g.k); RQ.by="mio"; }
+function nombreNuevo(){ return (prompt("Nombre del nuevo RQ (por ejemplo el proveedor o la marca):", `RQ ${RQ.grupos.length+1}`)||"").trim(); }
+function mover(keys, dest){
+  if (!keys.length || !dest) return;
+  if (dest==="__nuevo"){ dest = nombreNuevo(); if (!dest) return renderRQ(); }
+  punto(`mover ${keys.length} línea${keys.length>1?"s":""} a ${dest}`);
+  fijar();
+  if (dest!==SIN_RQ && !RQ.grupos.includes(dest)) RQ.grupos.push(dest);
+  keys.forEach(k=>{ const L=CART.get(k); if (!L) return; if (dest===SIN_RQ) delete L.g; else L.g=dest; });
+  SELRQ.clear(); guardar(); renderRQ(); toast(`${keys.length} línea${keys.length>1?"s":""} → ${dest}`, true);
+}
+const totRQ = ls => ({n:ls.length, monto:sum(ls,x=>x.monto), igv:sum(ls,x=>x.igv), propio:sum(ls,x=>x.usaPropio), def:sum(ls,x=>x.def),
+  sinPpto:ls.filter(x=>!x.sk).length, sinPrecio:ls.filter(x=>!x.pr).length, imp:ls.filter(x=>x.r.c.imp && !x.r.pvn).length, lt:Math.max(0,...ls.map(x=>x.r.c.lt))});
+function pintaSumRQ(){
+  const t = totRQ(lineas()), mio = RQ.by==="mio";
+  $("#rqSum").innerHTML = `<div><b>${n0(t.n)}</b><span>llaves en el RQ</span></div><div><b>${sol(t.monto)}</b><span>monto sin IGV</span></div>
+    <div><b>${sol(t.igv)}</b><span>con IGV (lo que consume del presupuesto)</span></div><div><b>${sol(t.propio)}</b><span>lo cubre el saldo de su propio SKU</span></div>
+    <div><b class="${t.def>0.5?"neg":"pos"}">${t.def>0.5?sol(t.def):"✓ S/ 0"}</b><span>déficit: hay que redistribuir</span></div>
+    <div><b>${t.n?n0(t.lt)+" d":"–"}</b><span>lead time más largo</span></div>`;
+  $("#rqFon").disabled = !t.n; $("#rqFix").hidden = mio || !t.n; $("#rqNew").hidden = !mio; $("#rqReset").hidden = !t.n;
+  // botones de agrupación, con cuántos grupos (RQ) saldrían con cada criterio
+  const ls0 = lineas(), nG = k => k==="mio" ? new Set([...RQ.grupos, ...ls0.filter(x=>!x.L.g).map(()=>SIN_RQ)]).size : new Set(ls0.map(x=>GBY[k](x.r,x.L))).size;
+  $("#gBy").innerHTML = GBY_LBL.map(([k,l])=>`<button type="button" class="chip ${RQ.by===k?"on":""}" data-by="${k}" aria-pressed="${RQ.by===k}">${l}${t.n && k!=="no" ? ` · ${nG(k)}` : ""}</button>`).join("");
+  $$("#gBy [data-by]").forEach(b=>b.onclick=()=>{ if (RQ.by===b.dataset.by) return; punto("cambiar la agrupación"); RQ.by=b.dataset.by; FD.scope=""; SELRQ.clear(); guardar(); renderRQ(); });
+  $("#rqSort").value = RQ.sort; $("#rqDir").hidden = !RQ.sort; $("#rqDir").textContent = RQ.dir<0 ? "↓ mayor a menor" : "↑ menor a mayor";
+  $("#rqHint").innerHTML = !t.n ? "" : mio
+    ? "Cada grupo es <b>un RQ tuyo</b>: escribe sobre el nombre para cambiarlo, mueve una línea con la lista <b>RQ</b> de su fila, o marca varias y usa <b>Mover a…</b> en la barra de abajo. Todo se puede deshacer (Ctrl+Z)."
+    : `Agrupado por ${GBY_TXT[RQ.by]}. Para armar los RQ a tu criterio: marca líneas y usa <b>Mover a…</b>, o pulsa <b>Ajustar a mi criterio</b> y los grupos que ves pasan a ser tus RQ (los puedes renombrar, juntar o dividir).`;
+}
+function filaRQ(x){
+  const r=x.r, c=r.c, um=r.um||"", mio=RQ.by==="mio", on=SELRQ.has(x.k);
+  const codSel = r.cod.length>1 ? `<select class="in csel" data-cod="${esc(x.k)}" aria-label="Código a pedir">${r.cod.map(o=>{ const s=c.sk.find(y=>y.c===o.c);
+      return `<option value="${esc(o.c)}" ${o.c===x.L.c?"selected":""}>${esc(o.c)}${s?` (saldo S/ ${nf0.format(s.sa||0)})`:" (sin ppto)"}</option>`; }).join("")}</select>` : `<b>${esc(x.L.c)}</b>`;
+  const mv = mio ? `<td><select class="in csel" data-mv="${esc(x.k)}" aria-label="RQ de ${esc(x.k)}">${uniq([...RQ.grupos, x.L.g||SIN_RQ, SIN_RQ]).map(n=>`<option value="${esc(n)}" ${(x.L.g||SIN_RQ)===n?"selected":""}>${esc(n)}</option>`).join("")}<option value="__nuevo">＋ Nuevo RQ…</option></select></td>` : "";
+  return `<tr data-k="${esc(x.k)}" class="${on?"insel":""}">
+    <td class="ck"><label><input type="checkbox" data-ck="${esc(x.k)}" ${on?"checked":""} aria-label="Marcar ${esc(x.k)}"></label></td>
+    <td style="white-space:nowrap"><button class="x" data-del="${esc(x.k)}" title="Quitar del RQ" aria-label="Quitar ${esc(x.k)}">×</button><button class="x r" data-rst="${esc(x.k)}" title="Volver a lo sugerido (cantidad, precio, código y nota)" aria-label="Restablecer ${esc(x.k)}" hidden>↺</button></td>
+    ${mv}
+    <td><a href="#" data-det="${esc(x.k)}">${esc(x.k)}</a></td>
+    <td>${codSel}${x.sk?"":' <span class="tag warn" title="Este código no tiene línea en el presupuesto: hay que crearla o redistribuir">sin ppto</span>'}<div class="cd">${esc(marcaDe(r,x.L.c))}</div></td>
+    <td style="white-space:normal;min-width:220px">${esc(r.n)}${c.imp && !r.pvn?' <span class="tag bad" title="Solo se ha comprado al exterior">import.</span>':""}</td>
+    <td>${estBadge(r)}</td>
+    <td class="n">${qty(c.stock,um)}</td><td>${trHtml(r)}</td><td class="n">${qty(c.dem,um)}</td><td class="n">${c.sug?qty(c.sug,um):"–"}</td>
+    <td class="n"><input class="in qin" type="number" min="0" step="any" data-q="${esc(x.k)}" value="${x.L.q}" aria-label="Cantidad ${esc(x.k)}"><div class="cd">${esc(um)}</div></td>
+    <td class="n"><input class="in pin" type="number" min="0" step="0.01" data-p="${esc(x.k)}" value="${x.pr?Math.round(x.pr*100)/100:""}" placeholder="precio" aria-label="Precio ${esc(x.k)}"></td>
+    <td class="n" data-f="monto"></td><td class="n" data-f="igv"></td><td class="n" data-f="saldo"></td><td class="n" data-f="def"></td><td class="n" data-f="cob"></td>
+    <td><input class="in nin" type="text" data-n="${esc(x.k)}" value="${esc(x.nota)}" aria-label="Nota ${esc(x.k)}"></td></tr>`;
+}
+function renderRQ(){
+  pintaSumRQ();
+  // sugeridas que se pueden agregar de golpe
+  $("#rqSug").innerHTML = ["COMPRAR","EVALUAR","APURAR"].map(e=>{ const n=F.filter(r=>pasa(r,"est") && r.c.e===e && !CART.has(r.k)).length;
+    return `<button class="chip add" data-addest="${e}" ${n?"":"disabled"}>+ ${EST[e][0]} · ${n0(n)}</button>`; }).join("");
+  $$("[data-addest]").forEach(b=>b.onclick=()=>{ const e=b.dataset.addest, rs=F.filter(r=>pasa(r,"est") && r.c.e===e && !CART.has(r.k));
+    if (rs.length>150 && !confirm(`Se agregarán ${rs.length} llaves. ¿Continuar?`)) return;
+    punto(`agregar ${rs.length} llaves en ${EST[e][0]}`); rs.forEach(agregar); guardar(); toast(`${rs.length} llaves agregadas`, true); renderRQ(); pintaSel(); });
+  const gs = gruposRQ(), mio = RQ.by==="mio";
+  if (!gs.length){
+    $("#groups").innerHTML = `<div class="card empty"><b>El RQ está vacío.</b><br>Marca las llaves en la pestaña 1 (casilla a la izquierda), escribe una llave o código arriba, o agrega las sugeridas.<br>
+      <button class="btn pri" id="goRep">← Elegir repuestos</button></div>`;
+    $("#goRep").onclick = () => tab("rep"); pintaBulk(); return;
+  }
+  $("#groups").innerHTML = gs.map((g,gi)=>`
+    <section class="card grp" data-g="${gi}">
+      <div class="gh">${mio && g.k!==SIN_RQ ? `<input class="in gname" data-ren="${gi}" value="${esc(g.k)}" aria-label="Nombre del RQ" title="Escribe para cambiar el nombre de este RQ">` : `<span class="gt">${esc(g.k)}</span>`}
+        <span class="gm" data-gm="${gi}"></span>
+        <span style="display:flex;gap:6px;flex-wrap:wrap">${g.ls.length?`<button class="btn sm" data-copy="${gi}">Copiar líneas</button><button class="btn sm pri" data-fund="${gi}">Fondos de este ${mio?"RQ":"grupo"} →</button>`:""}
+          ${mio && g.k!==SIN_RQ ? `<button class="btn sm ghost" data-gdel="${gi}" title="Elimina este RQ; sus líneas pasan a Sin asignar">Eliminar RQ</button>` : ""}</span></div>
+      ${g.ls.length ? `<div class="gb"><table class="t"><thead><tr><th class="ck"><label title="Marcar todas las líneas del grupo"><input type="checkbox" data-gck="${gi}" ${g.ls.every(x=>SELRQ.has(x.k))?"checked":""} aria-label="Marcar el grupo"></label></th><th></th>${mio?"<th>RQ</th>":""}
+        ${thRQ()}</tr></thead>
+        <tbody>${g.ls.map(filaRQ).join("")}</tbody></table></div>`
+        : `<div class="gb empty" style="padding:14px">RQ sin líneas: mueve líneas aquí con la lista RQ de cada fila o con “Mover a…”.</div>`}
+    </section>`).join("");
+  pintaRQ();
+  const marca = (i,on) => { on ? SELRQ.add(i.dataset.ck) : SELRQ.delete(i.dataset.ck); i.checked=on; i.closest("tr").classList.toggle("insel",on); };
+  $$("#groups [data-ck]").forEach(i=>i.onchange=()=>{ marca(i, i.checked); pintaBulk(); });
+  $$("#groups [data-gck]").forEach(i=>i.onchange=()=>{ $$(`#groups .grp[data-g="${i.dataset.gck}"] [data-ck]`).forEach(c=>marca(c, i.checked)); pintaBulk(); });
+  $$("#groups [data-del]").forEach(b=>b.onclick=()=>{ const k=b.dataset.del; punto(`quitar ${k}`); CART.delete(k); SELRQ.delete(k); guardar(); renderRQ(); pintaSel(); toast(`${k} quitada del RQ`, true); });
+  $$("#groups [data-rst]").forEach(b=>b.onclick=()=>{ const k=b.dataset.rst; punto(`restablecer ${k}`); restablecer(k); guardar(); renderRQ(); });
+  $$("#groups [data-det]").forEach(a=>a.onclick=e=>{ e.preventDefault(); abrir(BYK(a.dataset.det)); });
+  $$("#groups [data-cod]").forEach(s=>s.onchange=()=>{ punto(`código de ${s.dataset.cod}`); CART.get(s.dataset.cod).c = s.value; guardar(); renderRQ(); });
+  $$("#groups [data-mv]").forEach(s=>s.onchange=()=>mover([s.dataset.mv], s.value));
+  const num = v => { const n=parseFloat(String(v).replace(",",".")); return isFinite(n)&&n>=0 ? n : null; };
+  $$("#groups [data-q]").forEach(i=>i.oninput=()=>{ const v=num(i.value); if (v!=null){ editando(i, `cantidad de ${i.dataset.q}`); CART.get(i.dataset.q).q=v; guardar(); pintaRQ(); } });
+  $$("#groups [data-p]").forEach(i=>i.oninput=()=>{ editando(i, `precio de ${i.dataset.p}`); CART.get(i.dataset.p).p = num(i.value); guardar(); pintaRQ(); });
+  $$("#groups [data-n]").forEach(i=>i.oninput=()=>{ editando(i, `nota de ${i.dataset.n}`); CART.get(i.dataset.n).n = i.value; guardar(); pintaRQ(); });
+  $$("#groups [data-ren]").forEach(i=>i.onchange=()=>{ const old=gs[+i.dataset.ren].k, nu=i.value.trim(); if (!nu || nu===old) { i.value=old; return; }
+    punto(`renombrar el RQ ${old}`); CART.forEach(L=>{ if (L.g===old) L.g=nu; });
+    RQ.grupos = RQ.grupos.includes(nu) ? RQ.grupos.filter(n=>n!==old) : RQ.grupos.map(n=>n===old?nu:n);
+    if (FD.scope===old) FD.scope=nu; guardar(); renderRQ(); });
+  $$("#groups [data-gdel]").forEach(b=>b.onclick=()=>{ const k=gs[+b.dataset.gdel].k; punto(`eliminar el RQ ${k}`); CART.forEach(L=>{ if (L.g===k) delete L.g; });
+    RQ.grupos = RQ.grupos.filter(n=>n!==k); if (FD.scope===k) FD.scope=""; guardar(); renderRQ(); toast(`RQ ${k} eliminado: sus líneas quedaron en ${SIN_RQ}`, true); });
+  $$("#groups [data-copy]").forEach(b=>b.onclick=()=>copiarLineas(gs[+b.dataset.copy].ls.map(x=>lin(x.k))));
+  $$("#groups [data-fund]").forEach(b=>b.onclick=()=>{ FD.scope = gs[+b.dataset.fund].k; tab("fon"); });
+  // clic en un encabezado: mayor a menor → menor a mayor → orden en que se agregaron
+  $$("#groups th[data-sk]").forEach(th=>th.onclick=()=>{ const k=th.dataset.sk, nat=RQNUM.has(k)?-1:1;
+    if (RQ.sort!==k){ RQ.sort=k; RQ.dir=nat; } else if (RQ.dir===nat) RQ.dir=-nat; else RQ.sort=""; renderRQ(); });
+  pintaBulk();
+}
+// Recalcula montos, déficit y totales en su sitio mientras se escribe (sin redibujar ni perder el cursor)
+function pintaRQ(){
+  pintaSumRQ();
+  const gs = gruposRQ();
+  $$("#groups tr[data-k]").forEach(tr=>{ const x=lin(tr.dataset.k), f=k=>tr.querySelector(`[data-f="${k}"]`);
+    f("monto").innerHTML = x.pr ? sol(x.monto) : '<span class="tag warn">sin precio</span>';
+    f("igv").textContent = sol(x.igv);
+    f("saldo").innerHTML = x.sk ? `<span class="${(x.sk.sa||0)<0?"neg":""}">${sol(x.sk.sa)}</span>${x.propio<(x.sk.sa||0)-0.5?`<div class="cd">Odoo deja ${sol(x.propio)}</div>`:""}` : '<span class="muted">–</span>';
+    f("def").innerHTML = x.def>0.5 ? `<b class="neg">${sol(x.def)}</b>` : '<span class="pos">✓</span>';
+    f("cob").innerHTML = x.cobDesp==null ? "–" : `<span class="${x.cobDesp>P.sob?"neg":""}">${n1(x.cobDesp)} m</span>`;
+    tr.querySelector("[data-rst]").hidden = !modificada(x.r, x.L);
+  });
+  gs.forEach((g,gi)=>{ const el=$(`[data-gm="${gi}"]`); if (!el) return; const t=totRQ(g.ls);
+    el.innerHTML = `<span><b>${n0(t.n)}</b> líneas</span><span><b>${sol(t.monto)}</b> sin IGV</span><span><b>${sol(t.igv)}</b> con IGV</span>
+      <span class="${t.def>0.5?"neg":""}">déficit <b>${sol(t.def)}</b></span>${t.n?`<span>lead time hasta <b>${n0(t.lt)} d</b></span>`:""}
+      ${t.sinPpto?`<span class="tag warn">${t.sinPpto} sin línea de presupuesto</span>`:""}${t.sinPrecio?`<span class="tag warn">${t.sinPrecio} sin precio</span>`:""}${t.imp?`<span class="tag bad">${t.imp} importación</span>`:""}`; });
+  pintaSel();
+}
+// Barra de acciones para las líneas marcadas (mover a otro RQ, restablecer, quitar)
+function pintaBulk(){
+  [...SELRQ].forEach(k=>{ if (!CART.has(k)) SELRQ.delete(k); });
+  const b=$("#bulkbar"); b.hidden = !SELRQ.size || TAB!=="rq"; if (b.hidden) return;
+  const ks=[...SELRQ], n=ks.length, nombres=uniq([...gruposRQ().map(g=>g.k), ...(RQ.by==="mio"?[SIN_RQ]:[])]);
+  b.innerHTML = `<span><b>${n}</b> línea${n>1?"s":""} marcada${n>1?"s":""} · <b>${sol(sum(ks.map(lin),x=>x.igv))}</b> con IGV</span>
+    <select id="bkMv" aria-label="Mover las líneas marcadas a otro RQ"><option value="">Mover a…</option>${nombres.map(m=>`<option value="${esc(m)}">${esc(m.slice(0,44))}</option>`).join("")}<option value="__nuevo">＋ Nuevo RQ…</option></select>
+    <button class="btn sm" id="bkRst">Restablecer</button><button class="btn sm" id="bkDel">Quitar</button><button class="btn sm" id="bkNo">Desmarcar</button>`;
+  $("#bkMv").onchange = e => mover(ks, e.target.value);
+  $("#bkRst").onclick = () => { punto(`restablecer ${n} líneas`); ks.forEach(restablecer); guardar(); renderRQ(); };
+  $("#bkDel").onclick = () => { punto(`quitar ${n} líneas`); ks.forEach(k=>CART.delete(k)); SELRQ.clear(); guardar(); renderRQ(); pintaSel(); toast(`${n} línea${n>1?"s":""} quitada${n>1?"s":""} del RQ`, true); };
+  $("#bkNo").onclick = () => { SELRQ.clear(); renderRQ(); };
+}
+function copiarLineas(ls){
+  const t = [["Codigo","Producto","Cantidad","UdM","Precio_ref_sin_IGV","Monto_sin_IGV","Centro","Situacion","Nota"].join("\t")]
+    .concat(ls.map(x=>[x.L.c, prodDe(x), String(x.L.q).replace(".",","), x.r.um||"", (x.pr||0).toFixed(2).replace(".",","), x.monto.toFixed(2).replace(".",","), M.centro, M.situacion, x.nota].join("\t")));
+  copiar(t.join("\n"), `${ls.length} líneas copiadas (pegar en Excel u Odoo)`);
+}
+
+// ---------- 3. Fondos ----------
+function enAlcance(){ const ls=lineas(); if (!FD.scope) return ls; const g=gruposRQ().find(g=>g.k===FD.scope); if (!g){ FD.scope=""; return ls; } return g.ls; }
+function fuentes(){
+  const out = [];
+  F.forEach(r=>{ if (!r.c.sk.length) return;
+    if (CART.has(r.k)) {   // otros códigos de la misma llave: el dinero sigue siendo para el mismo repuesto
+      const dest = CART.get(r.k).c;
+      r.c.sk.filter(x=>x.c!==dest && x.mov>0.5).forEach(x=>out.push({id:x.c, r, x, pr:0, lib:x.mov}));
+      return; }
+    const e=r.c.e, pr = (e==="SINROT"||e==="INACTIVO"||e==="TRANSITO") ? 1 : e==="SOBRESTOCK" ? 2 : e==="OK" ? 3 : e==="APURAR" ? 4 : 5;
+    let lib = r.c.lib; if (lib<=0.5) return;
+    r.c.sk.filter(x=>x.mov>0).sort((a,b)=>b.mov-a.mov).forEach(x=>{ const t=Math.min(x.mov, lib); if (t>0.5){ out.push({id:x.c, r, x, pr, lib:t}); lib-=t; } });
+  });
+  return out.sort((a,b)=>a.pr-b.pr || b.lib-a.lib);
+}
+// Reparte lo elegido: primero el mismo repuesto (otro código), luego cada fuente al déficit más grande (si se pide, del mismo sistema primero)
+function repartir(nec, src){
+  const plan = []; nec.forEach(n=>n.asig=0);
+  const elegidas = src.filter(s=>FD.sel.has(s.id)).map(s=>({s, resto:Math.min(FD.sel.get(s.id), s.lib)}));
+  elegidas.filter(o=>o.s.pr===0).forEach(o=>{ const n=nec.find(n=>n.k===o.s.r.k); if (!n) return;
+    const t=Math.min(o.resto, n.def-n.asig); if (t>0.5){ plan.push({s:o.s, n, m:t}); n.asig+=t; o.resto-=t; } });
+  elegidas.filter(o=>o.s.pr!==0).forEach(o=>{
+    const ord = [...nec].sort((a,b)=>(FD.same ? (b.r.f2===o.s.r.f2)-(a.r.f2===o.s.r.f2) : 0) || (b.def-b.asig)-(a.def-a.asig));
+    for (const n of ord){ if (o.resto<=0.5) break; const t=Math.min(o.resto, n.def-n.asig); if (t>0.5){ plan.push({s:o.s, n, m:t}); n.asig+=t; o.resto-=t; } } });
+  return {plan, elegido:sum(elegidas,o=>Math.min(FD.sel.get(o.s.id), o.s.lib)), sobra:sum(elegidas,o=>o.resto)};
+}
+let SRC = [], PLAN = [], NEC = [];
+function datosFon(){ const ls=enAlcance(); const nec=ls.filter(x=>x.def>0.5).sort((a,b)=>b.def-a.def); SRC=fuentes();
+  [...FD.sel.keys()].forEach(id=>{ if (!SRC.some(s=>s.id===id)) FD.sel.delete(id); });
+  return {ls, nec, ...repartir(nec, SRC)}; }
+function pintaFon(){
+  const d = datosFon(); PLAN = d.plan;
+  const pide = sum(d.ls,x=>x.igv), propio = sum(d.ls,x=>x.usaPropio), def = sum(d.nec,x=>x.def), cub = sum(d.plan,p=>p.m), falta = Math.max(0,def-cub);
+  $("#cFon").textContent = falta>0.5 ? "falta "+sol(falta) : (CART.size ? "✓" : ""); $("#cFon").classList.toggle("hot", falta>0.5);
+  $("#fSum").innerHTML = `<div><b>${sol(pide)}</b><span>pide el RQ (con IGV)</span></div><div><b>${sol(propio)}</b><span>cubre el saldo de su propio SKU</span></div>
+    <div><b class="${def>0.5?"neg":""}">${sol(def)}</b><span>déficit a redistribuir</span></div><div><b>${sol(d.elegido)}</b><span>saldos elegidos (${n0(FD.sel.size)} SKU)</span></div>
+    <div><b class="${falta>0.5?"neg":"pos"}">${falta>0.5?sol(falta):"✓ cubierto"}</b><span>${falta>0.5?"falta ubicar":"déficit cubierto"}${d.sobra>0.5?` · sobra ${sol(d.sobra)} elegido`:""}</span></div>`;
+  $("#fProg").style.width = (def>0.5 ? Math.min(100, cub/def*100) : (d.ls.length?100:0))+"%";
+  // lo que pide el RQ, en los mismos grupos de la pestaña 2 (cada grupo = un RQ) y con su tránsito
+  const asigDe = k => d.nec.find(n=>n.k===k)?.asig || 0;
+  NEC = gruposRQ().filter(g=>g.ls.length && (!FD.scope || g.k===FD.scope))
+    .map(g=>({k:g.k, ls:g.ls.map(x=>({...x, asig:Math.min(asigDe(x.k), x.def), falta:Math.max(0, x.def-asigDe(x.k))})).sort((a,b)=>b.def-a.def)}));
+  const fila = x => { const co = x.sk ? (x.sk.co||0) : 0;
+    return `<tr data-k="${esc(x.k)}"><td>${cp(x.k,true)}<div class="cd">${cp(x.L.c)}${x.sk?"":' <span class="tag warn">sin ppto</span>'}</div></td>
+      <td style="white-space:normal;min-width:170px">${esc(x.r.n)}</td>
+      <td class="n"><b>${qty(x.L.q,x.r.um)}</b><div class="cd">${esc(x.r.um||"")}</div></td>
+      <td>${trHtml(x.r)}${co>0.5?`<div class="cd" title="Monto de este SKU ya comprometido en OC por entregar${x.sk.cu?` (${qty(x.sk.cu,x.r.um)})`:""} y RQ sin OC${x.sk.su?` (${qty(x.sk.su,x.r.um)})`:""}. El saldo ya lo tiene descontado.">ya reservado ${sol(co)}</div>`:""}</td>
+      <td class="n">${sol(x.igv)}</td><td class="n">${sol(x.usaPropio)}</td><td class="n ${x.def>0.5?"neg":""}">${x.def>0.5?sol(x.def):"–"}</td>
+      <td class="n">${x.asig>0.5?sol(x.asig):"–"}</td><td class="n">${x.def<=0.5?'<span class="pos">✓ alcanza</span>':x.falta>0.5?`<b class="neg">${sol(x.falta)}</b>`:'<span class="pos">✓</span>'}</td></tr>`; };
+  const cabG = (g,gi) => { const f=sum(g.ls,x=>x.falta), df=sum(g.ls,x=>x.def);
+    return `<tr class="gr"><td colspan="4"><b>${esc(g.k)}</b> · ${g.ls.length} línea${g.ls.length>1?"s":""}<button class="btn sm" data-cpn="${gi}">Copiar</button></td>
+      <td class="n"><b>${sol(sum(g.ls,x=>x.igv))}</b></td><td class="n">${sol(sum(g.ls,x=>x.usaPropio))}</td><td class="n ${df>0.5?"neg":""}"><b>${df>0.5?sol(df):"–"}</b></td>
+      <td class="n">${sol(sum(g.ls,x=>x.asig))}</td><td class="n">${f>0.5?`<b class="neg">${sol(f)}</b>`:'<span class="pos">✓</span>'}</td></tr>`; };
+  $("#tNec").innerHTML = `<thead><tr><th>Llave · código destino</th><th>Repuesto</th><th class="n">Cantidad</th><th title="Lo que ya está pedido de esta llave: OC por entregar y RQ sin OC">En tránsito</th><th class="n">Pide con IGV</th><th class="n">Saldo propio</th><th class="n">Déficit</th><th class="n">Ubicado</th><th class="n">Falta</th></tr></thead><tbody>`
+    + (NEC.length ? NEC.map((g,gi)=>(RQ.by!=="no" ? cabG(g,gi) : "") + g.ls.map(fila).join("")).join("")
+      : `<tr><td colspan="9" class="empty">No hay líneas en el RQ. Arma el RQ en la pestaña 2.</td></tr>`) + "</tbody>";
+  $$("#tNec [data-cpn]").forEach(b=>b.onclick=()=>copiarPide([NEC[+b.dataset.cpn]]));
+  $("#bNecCopy").disabled = !NEC.length;
+  // barra fija: se ve cuánto falta mientras se marcan saldos más abajo
+  const fb = $("#fonbar"); fb.hidden = TAB!=="fon" || !d.ls.length;
+  if (!fb.hidden){ fb.innerHTML = `<span>Déficit <b>${sol(def)}</b> · elegido <b>${sol(d.elegido)}</b> en ${n0(FD.sel.size)} SKU · ${falta>0.5?`falta <b>${sol(falta)}</b>`:"<b>✓ cubierto</b>"}${d.sobra>0.5?` · sobra ${sol(d.sobra)}`:""}</span>
+      <button class="btn sm" id="fbSug">Sugerir fuentes</button><button class="btn sm pri" id="fbCopy" ${d.plan.length?"":"disabled"}>Copiar redistribución (${d.plan.length})</button>`;
+    $("#fbSug").onclick = sugerir; $("#fbCopy").onclick = () => $("#bPlanCopy").click(); }
+  $("#tPlan").innerHTML = `<thead><tr><th>Origen (SKU que cede)</th><th>Motivo</th><th>Destino (SKU que recibe)</th><th class="n">Monto con IGV</th></tr></thead><tbody>`
+    + (d.plan.length ? d.plan.map(p=>`<tr><td>${cp(p.s.id,true)}<div class="cd">${esc(p.s.r.k)} · ${esc((p.s.r.n||"").slice(0,34))}</div></td><td>${esc(PRIO[p.s.pr])}</td>
+        <td>${cp(p.n.L.c,true)}<div class="cd">${esc(p.n.k)} · ${esc((p.n.r.n||"").slice(0,34))}</div></td><td class="n">${sol(p.m)}</td></tr>`).join("")
+        + `<tr class="gr"><td colspan="3"><b>Total</b> · ${d.plan.length} movimiento${d.plan.length>1?"s":""}</td><td class="n"><b>${sol(cub)}</b></td></tr>`
+      : `<tr><td colspan="4" class="empty">${def>0.5?"Marca saldos abajo o pulsa “Sugerir fuentes”.":"No hace falta redistribuir."}</td></tr>`) + "</tbody>";
+  return d;
+}
+// Copia lo que pide el RQ con su grupo, tránsito y saldos (para pegar en Excel o en un correo)
+function copiarPide(gs){
+  const f = v => (Math.round((v||0)*100)/100).toFixed(2).replace(".",",");
+  const t = [["RQ","Llave","Codigo","Producto","Cantidad","UdM","Transito_OC","Transito_RQ_sin_OC","Documentos_en_transito","Precio_ref_sin_IGV","Monto_sin_IGV","Pide_con_IGV","Saldo_propio_SKU","Deficit","Ubicado","Falta","Nota"].join("\t")];
+  gs.forEach(g=>g.ls.forEach(x=>{ const tr=transito(x.r);
+    t.push([g.k, x.k, x.L.c, prodDe(x), String(x.L.q).replace(".",","), x.r.um||"", f(tr.oc), f(tr.rq), [...tr.ocs.map(o=>o.oc), ...tr.rqs.map(o=>o.rq)].join(" "),
+            f(x.pr), f(x.monto), f(x.igv), f(x.usaPropio), f(x.def), f(x.asig), f(x.falta), x.nota].join("\t")); }));
+  copiar(t.join("\n"), `${t.length-1} línea${t.length>2?"s":""} de ${gs.length} grupo${gs.length>1?"s":""} copiadas (pegar en Excel)`);
+}
+function renderFon(){
+  const gs = gruposRQ().filter(g=>g.ls.length);
+  $("#fScope").innerHTML = `<span class="lbl">Alcance:</span><span class="chip ${!FD.scope?"on":""}" data-sc="" role="button" tabindex="0">Todo · ${n0(CART.size)}</span>`
+    + (gs.length>1 ? gs.map(g=>`<span class="chip ${FD.scope===g.k?"on":""}" data-sc="${esc(g.k)}" role="button" tabindex="0">${esc(g.k.slice(0,40))} · ${g.ls.length}</span>`).join("") : "");
+  $$("#fScope [data-sc]").forEach(c=>c.onclick=()=>{ FD.scope=c.dataset.sc; guardar(); renderFon(); });
+  pintaFon();
+  const totSa = sum(F.flatMap(r=>r.c.sk),x=>x.sa), totLib = sum(SRC.filter(s=>s.pr>0),s=>s.lib);
+  $("#fNote").innerHTML = `Presupuesto ${M.anio} <b>${esc(M.centro)} ${esc(M.situacion)}</b>: ${sol(M.ppto_total)} en ${n0(M.ppto_skus)} SKUs · saldo real ${sol(totSa)} ·
+    liberable en otras llaves ${sol(totLib)} (después de reservar ${n1(P.mrest)} meses de su propio consumo). El saldo real ya descuenta lo comprado y lo que está en tránsito (OC por entregar y RQ sin OC).
+    La redistribución en Odoo va de SKU a SKU dentro del mismo centro y situación.`;
+  $("#sPr").innerHTML = `<option value="">Todos</option>` + Object.entries(PRIO).map(([k,v])=>`<option value="${k}" ${FD.pr===k?"selected":""}>${esc(v)}</option>`).join("");
+  $("#sMin").value = FD.min;
+  pintaSrc();
+}
+const SCOLS = [["amt","Tomar S/",1],["pr","Motivo"],["id","SKU origen"],["k","Llave · repuesto"],["e","Estado"],["dem","Prom./mes",1],["cob","Cobertura",1],["tr","En tránsito"],
+  ["sa","Saldo real",1],["do","Disp. Odoo",1],["res","Reserva llave",1],["lib","Liberable",1]];
+const SNUM = new Set(["amt","dem","cob","tr","sa","do","res","lib"]);
+const SVAL = {amt:s=>FD.sel.get(s.id)||0, pr:s=>s.pr, id:s=>s.id, k:s=>s.r.n, e:s=>ORDEN_EST.indexOf(s.r.c.e), dem:s=>s.r.c.dem, cob:s=>s.r.c.cob===Infinity?1e9:(s.r.c.cob??-1),
+  tr:s=>(s.r.oc||0)+(s.r.rq||0), sa:s=>s.x.sa||0, do:s=>s.x.do||0, res:s=>s.pr===0?0:s.r.c.reserva, lib:s=>s.lib};
+const SGRP = {pr:s=>PRIO[s.pr], f:s=>s.r.f||"(sin familia)", f2:s=>s.r.f2||"(sin sistema)", marca:s=>marcaDe(s.r, s.id)};
+const SGRP_LBL = [["","Sin agrupar"],["pr","Motivo"],["f","Familia"],["f2","Sistema"],["marca","Marca"]];
+let SG = [];
+const faltaFon = () => { const d=datosFon(); return Math.max(0, sum(d.nec,x=>x.def) - sum(d.plan,p=>p.m)); };
+// Por qué un repuesto no sale en la lista de saldos (se muestra al buscarlo)
+function porQueNo(r){
+  if (!r.c.sk.length) return `no tiene línea de presupuesto en ${M.centro} ${M.situacion}`;
+  if (CART.has(r.k)) return "está en tu RQ: recibe dinero, no lo cede (y sus otros códigos no tienen saldo movible)";
+  if (r.c.movL<=0.5) return `su presupuesto ya está gastado: saldo real ${sol2(r.c.saL)} de ${sol(r.c.ppL)}${sum(r.c.sk,x=>Math.max(0,x.sa||0))>0.5?" (y Odoo no deja mover lo que queda)":""}`;
+  if (r.c.lib<=0.5) return `su saldo ${sol(r.c.movL)} queda reservado para su propio consumo hasta fin de año${(r.c.e==="COMPRAR"||r.c.e==="EVALUAR")?" y su compra sugerida":""} (reserva ${sol(r.c.reserva)})`;
+  if (r.c.lib<FD.min) return `solo libera ${sol2(r.c.lib)}, menos que el mínimo de S/ ${n0(FD.min)} que pusiste`;
+  return null;
+}
+function pintaSrc(){
+  const ws = FD.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const txt = s => (s.id+" "+s.r.k+" "+s.r.n+" "+(s.r.f||"")+" "+(s.r.f2||"")+" "+marcaDe(s.r,s.id)+" "+PRIO[s.pr]).toLowerCase();
+  // el mínimo oculta los saldos pequeños (salvo los ya marcados y los otros códigos de la misma llave)
+  const chicos = SRC.filter(s=>s.pr>0 && s.lib<FD.min && !FD.sel.has(s.id));
+  const rows = SRC.filter(s=>(!FD.pr || String(s.pr)===FD.pr) && (!FD.solo || FD.sel.has(s.id)) && (FD.sel.has(s.id) || s.pr===0 || s.lib>=FD.min)
+    && (!ws.length || ws.every(w=>txt(s).includes(w))));
+  const f2s = new Set(enAlcance().map(x=>x.r.f2));
+  rows.sort(FD.sort ? ((a,b)=>{ const f=SVAL[FD.sort], x=f(a), y=f(b); return (x>y?1:x<y?-1:0)*FD.dir; })
+                    : ((a,b)=>(FD.sel.has(b.id)-FD.sel.has(a.id)) || (FD.same ? f2s.has(b.r.f2)-f2s.has(a.r.f2) : 0) || a.pr-b.pr || b.lib-a.lib));
+  const tot = rows.length;
+  $("#sGrp").innerHTML = SGRP_LBL.map(([k,l])=>`<button type="button" class="chip ${FD.grp===k?"on":""}" data-sg2="${k}" aria-pressed="${FD.grp===k}">${l}</button>`).join("");
+  $$("#sGrp [data-sg2]").forEach(b=>b.onclick=()=>{ FD.grp=b.dataset.sg2; pintaSrc(); });
+  $("#sCnt").textContent = `${n0(tot)} SKU · ${sol(sum(rows,s=>s.lib))} liberable`
+    + (chicos.length ? ` · ocultos ${n0(chicos.length)} saldos menores a S/ ${n0(FD.min)} (suman ${sol(sum(chicos,s=>s.lib))})` : "")
+    + (!FD.grp && tot>300 ? " · se muestran 300: busca, filtra o agrupa para afinar" : "");
+  const fila = s => { const on=FD.sel.has(s.id), mismo=f2s.has(s.r.f2);
+    return `<tr class="${on?"insel":""}" data-s="${esc(s.id)}"><td class="ck"><label><input type="checkbox" data-sc2="${esc(s.id)}" ${on?"checked":""} aria-label="Usar ${esc(s.id)}"></label></td>
+      <td class="n"><input class="in ain" type="number" min="0" step="1" max="${Math.floor(s.lib)}" data-amt="${esc(s.id)}" value="${on?Math.round(FD.sel.get(s.id)):""}" placeholder="${nf0.format(s.lib)}" aria-label="Monto a tomar de ${esc(s.id)}"></td>
+      <td>${esc(PRIO[s.pr])}${s.pr===0?' <span class="tag okk">misma llave</span>':""}</td><td>${cp(s.id,true)}<div class="cd">${esc(marcaDe(s.r,s.id))}</div></td>
+      <td style="white-space:normal;min-width:220px"><a href="#" data-det="${esc(s.r.k)}">${esc(s.r.k)}</a> · ${esc(s.r.n)}<div class="cd">${esc([s.r.f,s.r.f2].filter(Boolean).join(" / "))}${FD.same&&mismo?' · <span class="pos">mismo sistema</span>':""}</div></td>
+      <td>${estBadge(s.r)}</td><td class="n">${qty(s.r.c.dem,s.r.um)}</td><td class="n">${s.r.c.cob==null?"–":s.r.c.cob===Infinity?"∞":n1(s.r.c.cob)+" m"}</td><td>${trHtml(s.r)}</td>
+      <td class="n">${sol(s.x.sa)}</td><td class="n">${sol(s.x.do)}</td><td class="n">${s.pr===0?"–":sol(s.r.c.reserva)}</td><td class="n"><b>${sol(s.lib)}</b></td></tr>`; };
+  let cuerpo;
+  if (!rows.length) cuerpo = `<tr><td colspan="13" class="empty">No hay saldos con estos filtros.</td></tr>`;
+  else if (!FD.grp) { SG = []; cuerpo = rows.slice(0,300).map(fila).join(""); }
+  else { const g = new Map(); rows.forEach(s=>{ const k=SGRP[FD.grp](s); if (!g.has(k)) g.set(k,[]); g.get(k).push(s); });
+    SG = [...g.entries()].map(([k,ls])=>({k, ls, lib:sum(ls,s=>s.lib)})).sort((a,b)=>b.lib-a.lib);
+    cuerpo = SG.map((G,gi)=>{ const ab=FD.open.has(FD.grp+"|"+G.k), ns=G.ls.filter(s=>FD.sel.has(s.id)).length;
+      return `<tr class="gr" data-sg="${gi}"><td class="ck"><label title="Tomar los saldos de este grupo (hasta cubrir lo que falta)"><input type="checkbox" data-sgck="${gi}" ${ns===G.ls.length?"checked":""} data-parcial="${ns>0&&ns<G.ls.length?1:0}" aria-label="Tomar el grupo ${esc(G.k)}"></label></td>
+        <td colspan="10"><span class="tw">${ab?"▾":"▸"}</span><b>${esc(G.k)}</b> · ${n0(G.ls.length)} SKU${ns?` · <span class="pos">${ns} marcado${ns>1?"s":""}: ${sol(sum(G.ls,s=>FD.sel.get(s.id)||0))}</span>`:""}</td>
+        <td class="n" colspan="2"><b>${sol(G.lib)}</b> liberable</td></tr>` + (ab ? G.ls.slice(0,300).map(fila).join("") : ""); }).join(""); }
+  $("#tSrc").innerHTML = `<thead><tr><th class="ck"></th>${SCOLS.map(([k,l,n])=>`<th class="${n?"n":""}" data-ss="${k}" title="Clic para ordenar">${l}${flecha(FD.sort===k, FD.dir)}</th>`).join("")}</tr></thead><tbody>${cuerpo}</tbody>`;
+  $$("#tSrc [data-parcial='1']").forEach(i=>{ i.indeterminate=true; });
+  // al buscar: repuestos que coinciden pero no son fuente, con el motivo
+  const why = $("#sWhy");
+  if (ws.length){ const enLista = new Set(rows.map(s=>s.r.k));
+    const no = F.filter(r=>!enLista.has(r.k) && ws.every(w=>(r.k+" "+r.n+" "+r.cod.map(c=>c.c).join(" ")).toLowerCase().includes(w))).sort((a,b)=>(b.v12||0)-(a.v12||0));
+    why.hidden = !no.length;
+    if (no.length) why.innerHTML = `<b>Coinciden con “${esc(FD.q)}” pero no aparecen como saldo disponible (${n0(no.length)}):</b><br>`
+      + no.slice(0,6).map(r=>`${cp(r.k,true)} ${esc(r.n)} — ${porQueNo(r) || "lo oculta el filtro de motivo o “solo las marcadas”"}`).join("<br>") + (no.length>6 ? `<br>… y ${n0(no.length-6)} más` : "");
+  } else why.hidden = true;
+  // eventos
+  $$("#tSrc th[data-ss]").forEach(th=>th.onclick=()=>{ const k=th.dataset.ss, nat=SNUM.has(k)?-1:1;
+    if (FD.sort!==k){ FD.sort=k; FD.dir=nat; } else if (FD.dir===nat) FD.dir=-nat; else FD.sort=""; pintaSrc(); });
+  $$("#tSrc tr.gr[data-sg]").forEach(tr=>tr.onclick=e=>{ if (e.target.closest(".ck")) return; const id=FD.grp+"|"+SG[+tr.dataset.sg].k; FD.open.has(id)?FD.open.delete(id):FD.open.add(id); pintaSrc(); });
+  $$("#tSrc [data-sgck]").forEach(i=>i.onchange=()=>{ const G=SG[+i.dataset.sgck];
+    punto(`${i.checked?"tomar":"soltar"} los saldos de ${G.k}`);
+    if (i.checked){ let f=faltaFon(); const cubrir=f>0.5; let n=0;
+      for (const s of [...G.ls].sort((a,b)=>b.lib-a.lib)){ if (FD.sel.has(s.id)) continue; if (cubrir && f<=0.5) break; const v=cubrir?Math.min(s.lib,f):s.lib; FD.sel.set(s.id, Math.min(Math.ceil(v), s.lib)); f-=v; n++; }
+      toast(cubrir ? `${n} saldos de ${G.k} marcados${f>0.5?`: aún faltan ${sol(f)}`:": déficit cubierto"}` : `${n} saldos de ${G.k} marcados`, true);
+    } else G.ls.forEach(s=>FD.sel.delete(s.id));
+    guardar(); pintaFon(); pintaSrc(); });
+  $$("#tSrc [data-sc2]").forEach(i=>i.onchange=()=>{ const s=SRC.find(s=>s.id===i.dataset.sc2), inp=$(`#tSrc [data-amt="${CSS.escape(s.id)}"]`);
+    punto(`${i.checked?"usar":"dejar de usar"} el saldo de ${s.id}`);
+    if (i.checked){ const f=faltaFon(); const v=Math.round(f>0.5?Math.min(s.lib,f):s.lib); FD.sel.set(s.id,v); inp.value=v; } else { FD.sel.delete(s.id); inp.value=""; }
+    i.closest("tr").classList.toggle("insel", i.checked); guardar(); pintaFon(); if (FD.grp) pintaSrc(); });
+  $$("#tSrc [data-amt]").forEach(inp=>inp.oninput=()=>{ const s=SRC.find(s=>s.id===inp.dataset.amt), v=parseFloat(inp.value), chk=$(`#tSrc [data-sc2="${CSS.escape(s.id)}"]`);
+    editando(inp, `monto de ${s.id}`);
+    if (isFinite(v) && v>0){ FD.sel.set(s.id, Math.min(v, s.lib)); chk.checked=true; } else { FD.sel.delete(s.id); chk.checked=false; }
+    inp.closest("tr").classList.toggle("insel", chk.checked); guardar(); pintaFon(); });
+  $$("#tSrc [data-det]").forEach(a=>a.onclick=e=>{ e.preventDefault(); abrir(BYK(a.dataset.det)); });
+}
+function sugerir(){
+  const nec=enAlcance().filter(x=>x.def>0.5); if (!nec.length) return toast("El RQ no tiene déficit: no hace falta redistribuir");
+  punto("sugerir fuentes"); FD.sel.clear(); SRC=fuentes();
+  let falta = sum(nec,x=>x.def);
+  nec.forEach(n=>{ let f=n.def; SRC.filter(s=>s.pr===0 && s.r.k===n.k).forEach(s=>{ if (f<=0.5) return; const t=Math.min(s.lib,f); FD.sel.set(s.id,Math.round(t)); f-=t; falta-=t; }); });
+  const f2s = new Set(nec.map(x=>x.r.f2));
+  const ord = SRC.filter(s=>s.pr>0 && s.lib>=FD.min).sort((a,b)=>(FD.same ? f2s.has(b.r.f2)-f2s.has(a.r.f2) : 0) || a.pr-b.pr || b.lib-a.lib);
+  for (const s of ord){ if (falta<=0.5) break; const t=Math.min(s.lib,falta); FD.sel.set(s.id,Math.ceil(t)); falta-=t; }
+  guardar(); renderFon();
+  const chicos = SRC.filter(s=>s.pr>0 && s.lib<FD.min && !FD.sel.has(s.id));
+  toast(falta>0.5 ? `No alcanza: faltan ${sol(falta)}${chicos.length?`. Quedan ${sol(sum(chicos,s=>s.lib))} en ${chicos.length} saldos menores a S/ ${n0(FD.min)} sin usar`:""}`
+                  : `${FD.sel.size} saldos elegidos cubren el déficit`, true);
+}
+
+// ---------- detalle ----------
+function barras(r){
+  const s=r.s, mx=Math.max(1,...s), W=680, H=110, bw=W/s.length, avg=r.p12||0;
+  return `<svg class="bars" viewBox="0 0 ${W} ${H+20}" width="100%" role="img" aria-label="Consumo mensual a buses, 24 meses">
+    <line class="base" x1="0" x2="${W}" y1="${H}" y2="${H}"/>
+    ${s.map((v,i)=>{const h=Math.max(0,v)/mx*H; return `<rect class="b ${i>=s.length-12?"hi":""}" x="${i*bw+2}" y="${H-h}" width="${bw-4}" height="${h}" rx="2"><title>${M.meses[i]}: ${qty(v,r.um)}</title></rect><rect x="${i*bw}" y="0" width="${bw}" height="${H}" fill="transparent"><title>${M.meses[i]}: ${qty(v,r.um)}</title></rect>`;}).join("")}
+    ${avg?`<line x1="${(s.length-12)*bw}" x2="${W}" y1="${H-avg/mx*H}" y2="${H-avg/mx*H}" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="4 3"/>`:""}
+    ${s.map((v,i)=>i%3===0?`<text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle">${M.meses[i]}</text>`:"").join("")}
+  </svg><div class="cd">Oscuro: últimos 12 meses cerrados · línea roja: promedio 12M · mes en curso: ${qty(r.ma||0,r.um)}</div>`;
+}
+let ABIERTA = null;
+function abrir(r){
+  ABIERTA = r;
+  const c=r.c, um=r.um||"";
+  const tam = Object.entries(r.tam||{}).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`${esc(t)} ${qty(v,um)}`).join(" · ") || "–";
+  const trOp = r.toc.filter(x=>!x.p), trPj = r.toc.filter(x=>x.p), rqOp = r.trq.filter(x=>!x.p), rqPj = r.trq.filter(x=>x.p);
+  const tocT = a => `<div class="mini-w"><table class="mini"><tr><th>OC</th><th>RQ</th><th>Proveedor</th><th>Comprador</th><th class="n">Pend.</th><th class="n">S/</th><th>Prevista</th><th class="n">Atraso</th><th>Centro</th></tr>
+        ${a.map(x=>`<tr><td>${cp(x.oc)}</td><td>${cp(x.rq)}</td><td>${esc(x.pv||"")}</td><td>${esc(x.cm||"")}</td><td class="n">${qty(x.q,um)}</td><td class="n">${sol(x.v)}</td><td>${fdate(x.fp)}</td><td class="n">${x.at?n0(x.at)+" d":"en plazo"}</td><td>${esc(x.cc||"")}</td></tr>`).join("")}</table></div>`;
+  const rqT = a => `<div class="mini-w"><table class="mini"><tr><th>RQ sin OC</th><th>Fecha</th><th class="n">Días</th><th class="n">Pend.</th><th class="n">S/</th><th>Centro</th><th>Observación</th></tr>
+        ${a.map(x=>`<tr><td>${cp(x.rq)}</td><td>${fdate(x.f)}</td><td class="n">${n0(x.d)}</td><td class="n">${qty(x.q,um)}</td><td class="n">${sol(x.v)}</td><td>${esc(x.cc||"")}</td><td>${esc(x.o||"")}</td></tr>`).join("")}</table></div>`;
+  const en = CART.has(r.k);
+  $("#dr").innerHTML = `
+  <div class="dh"><button class="btn xc" id="xClose" aria-label="Cerrar detalle">✕</button>
+    <div class="cd">${cp(r.k)} · ${esc(r.f||"")}${r.f2?" / "+esc(r.f2):""}${r.f3?" / "+esc(r.f3):""} · ${esc(um)}</div>
+    <h2>${esc(r.n)}</h2>
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge ${EST[c.e][1]}">${EST[c.e][0]}</span>
+      <span class="tag">ABC-XYZ ${r.abc==="-"?"sin consumo":r.abc+"-"+r.xyz}</span>${r.u?`<span class="tag">${esc(r.u)}</span>`:""}
+      ${c.imp?`<span class="tag bad">importación${r.pvn?"":" · sin proveedor nacional"}</span>`:""}
+      <span style="flex:1"></span><button class="btn sm ${en?"":"pri"}" id="dAdd">${en?"Quitar del RQ":"+ Agregar al RQ"}</button></div>
+  </div>
+  <div class="db">
+    <section class="card sec"><h4>Por qué está en ${EST[c.e][0]}</h4>
+      <div class="why">${porque(r)}</div>
+      <div class="kv">
+        <div><b>${c.sug?qty(c.sug,um):"–"}</b><span>sugerido comprar (${esc(um)})</span></div>
+        <div><b>${c.vsug?sol(c.vsug):"–"}</b><span>monto sin IGV</span></div>
+        <div><b>${cp(c.tgt)||"–"}</b><span>código a pedir</span></div>
+        <div><b>${esc((c.prov||"–").slice(0,28))}</b><span>proveedor sugerido</span></div>
+        <div><b>${qty(c.stock,um)}</b><span>stock de la operación</span></div>
+        <div><b>${qty(c.tr,um)}</b><span>en tránsito</span></div>
+        <div><b>${c.cob==null?"–":c.cob===Infinity?"∞":n1(c.cob)+" meses"}</b><span>cobertura</span></div>
+        <div><b>${c.exc?qty(c.exc,um):"–"}</b><span>exceso sobre ${P.sob} meses</span></div>
+      </div>
+      <div class="calc" style="margin-top:10px">
+        Demanda <code>${qty(c.dem,um)}/mes</code> (${BASE_TXT[P.base]}) · lead time <code>${n0(c.lt)} días</code> (${c.ltSrc}) · stock de seguridad <code>${qty(c.ss,um)}</code><br>
+        Punto de reorden <code>${qty(c.rop,um)}</code> · nivel objetivo <code>${qty(c.max,um)}</code> · posición (stock + tránsito) <code>${qty(c.pos,um)}</code>
+      </div>
+    </section>
+    <section class="card sec"><h4>Consumo a buses (operación)</h4>
+      <div class="kv">
+        <div><b>${qty(r.p12,um)}</b><span>prom. 12M</span></div><div><b>${qty(r.p6,um)}</b><span>prom. 6M</span></div><div><b>${qty(r.p3,um)}</b><span>prom. 3M</span></div>
+        <div><b>${sol(r.v12)}</b><span>valor 12M</span></div><div><b>${r.m12}/12</b><span>meses con consumo</span></div><div><b>${n0(r.bu)}</b><span>buses (12M)</span></div>
+        <div><b>${fdate(r.uc)}</b><span>último consumo</span></div><div><b>${r.cv==null?"–":nf2.format(r.cv)}</b><span>variabilidad (CV)</span></div>
+      </div>
+      <div class="cd" style="margin:6px 0">Por tamaño de bus (12M): ${tam}${r.pu12?` · consumo en proyectos 12M: ${qty(r.pu12,um)} (no cuenta)`:""}</div>
+      ${barras(r)}
+    </section>
+    <section class="card sec"><h4>Presupuesto ${M.anio} · ${esc(M.centro)} ${esc(M.situacion)} (con IGV)</h4>
+      ${c.sk.length?`<div class="mini-w"><table class="mini"><tr><th>SKU</th><th class="n">Presupuesto</th><th class="n">Ejecutado</th><th class="n">Comprometido</th><th class="n">Saldo real</th><th class="n">Disp. Odoo</th><th class="n">Movible</th></tr>
+        ${c.sk.map((x,i)=>`<tr><td>${cp(x.c,true)}${i===0?' <span class="tag">destino sugerido</span>':""}</td><td class="n">${sol(x.pp)}</td><td class="n">${sol(x.ej)}</td><td class="n">${sol(x.co)}</td><td class="n ${x.sa<0?"neg":""}">${sol(x.sa)}</td><td class="n">${sol(x.do)}</td><td class="n">${sol(x.mov)}</td></tr>`).join("")}</table></div>
+        <div class="calc" style="margin-top:6px">Reserva para ${n1(P.mrest)} meses${(c.e==="COMPRAR"||c.e==="EVALUAR")?" y su compra":""}: <code>${sol(c.reserva)}</code> · liberable para otras llaves: <code>${sol(c.lib)}</code></div>`
+        :'<div class="muted">Sin línea de presupuesto en este centro y situación: para comprarlo hay que crear o redistribuir una línea.</div>'}
+    </section>
+    <section class="card sec"><h4>Códigos de la llave (${r.cod.length})</h4>
+      <div class="mini-w"><table class="mini"><tr><th>Código</th><th>Descripción</th><th>Nro. parte</th><th>Marca</th></tr>
+      ${r.cod.map(x=>`<tr><td>${cp(x.c,true)}</td><td>${esc(x.n)}</td><td>${esc(x.p||"–")}</td><td>${esc(x.m||"–")}</td></tr>`).join("")}</table></div>
+    </section>
+    <section class="card sec"><h4>Stock por almacén</h4>
+      <div class="kv">${M.grupos.map(g=>`<div><b>${qty(r.st[g]||0,um)}</b><span>${esc(g)}${P.grupos[g]?"":" (no cuenta)"} · ${sol(r.sv[g]||0)}</span></div>`).join("")}</div>
+    </section>
+    <section class="card sec"><h4>Tránsito de la operación</h4>
+      ${trOp.length?tocT(trOp):'<div class="muted">Sin OC pendientes de entrega.</div>'}
+      ${rqOp.length?`<div style="margin-top:8px">${rqT(rqOp)}</div>`:'<div class="muted" style="margin-top:6px">Sin RQ pendientes de OC.</div>'}
+      ${(trPj.length||rqPj.length)?`<h4 style="margin-top:12px">Tránsito de proyectos (no cuenta)</h4>${trPj.length?tocT(trPj):""}${rqPj.length?rqT(rqPj):""}`:""}
+    </section>
+    <section class="card sec"><h4>Compras</h4>
+      <div class="kv" style="margin-bottom:8px"><div><b>${fdate(r.uf)}</b><span>última compra</span></div><div><b>${sol2(r.upr)}</b><span>último precio sin IGV</span></div>
+        <div><b>${esc((r.pvn||"–").slice(0,26))}</b><span>último proveedor nacional · ${sol2(r.prn)}</span></div><div><b>${sol2(r.pp12)}</b><span>precio promedio 12M</span></div>
+        <div><b>${n0(r.nc12)}</b><span>compras en 12M</span></div><div><b>${r.lt?n0(r.lt)+" días":"–"}</b><span>lead time real (mediana)</span></div></div>
+      ${r.hc.length?`<div class="mini-w"><table class="mini"><tr><th>Fecha</th><th>OC</th><th>Emp.</th><th>Proveedor</th><th>Código</th><th class="n">Cant.</th><th class="n">Precio</th></tr>
+        ${r.hc.map(x=>`<tr><td>${fdate(x.f)}</td><td>${cp(x.oc)||"–"}</td><td>${esc(x.e)}</td><td>${esc(x.pv||"")}${x.ic?' <span class="tag">intercompañía</span>':x.x?' <span class="tag bad">ext.</span>':""}</td><td>${esc(x.c)}</td><td class="n">${qty(x.q,um)}</td><td class="n">${sol2(x.pr)}</td></tr>`).join("")}</table></div>`:'<div class="muted">Sin compras registradas desde 2024.</div>'}
+    </section>
+  </div>`;
+  $("#ov").hidden=false; requestAnimationFrame(()=>$("#dr").classList.add("open")); $("#dr").scrollTop=0;
+  $("#xClose").onclick=cerrar; $("#xClose").focus();
+  $("#dAdd").onclick = () => { punto(`${CART.has(r.k)?"quitar":"agregar"} ${r.k}`); CART.has(r.k) ? CART.delete(r.k) : agregar(r); guardar(); toast(CART.has(r.k)?`${r.k} agregada al RQ`:`${r.k} quitada del RQ`); abrir(r); refrescar(); };
+}
+const cerrar = () => { $("#dr").classList.remove("open"); $("#ov").hidden=true; ABIERTA=null; };
+$("#ov").onclick = cerrar;
+
+// ---------- utilidades ----------
+const uniq = a => [...new Set(a)];
+function toast(m, conDeshacer){ const t=$("#toast"); t.innerHTML = esc(m) + (conDeshacer ? ' <button class="btn sm" id="tUndo">Deshacer</button>' : "");
+  t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>{ t.hidden=true; }, conDeshacer?6000:2400);
+  if (conDeshacer) $("#tUndo").onclick = () => { t.hidden=true; deshacer(); }; }
+function copiar(txt, msg){
+  const fb = () => { const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy"); toast(msg);}catch(e){toast("No se pudo copiar: selecciona y copia manualmente");} ta.remove(); };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(()=>toast(msg)).catch(fb); else fb();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-cp]"); if (!b) return;
+  e.preventDefault(); e.stopPropagation(); copiar(b.dataset.cp, `${b.dataset.cp} copiado`); b.classList.add("ok"); setTimeout(()=>b.classList.remove("ok"),1200); }, true);
+const csvV = x => x==null||(typeof x==="number"&&!isFinite(x)) ? "" : (typeof x==="number" ? String(Math.round(x*100)/100).replace(".",",") : `"${String(x).replace(/"/g,'""')}"`);
+function bajar(nombre, cab, filas){ const a=document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff"+cab.join(";")+"\n"+filas.map(f=>f.map(csvV).join(";")).join("\n")], {type:"text/csv;charset=utf-8"}));
+  a.download = `${nombre}_${new Date().toISOString().slice(0,10)}.csv`; a.click(); }
+$("#bCsv").onclick = () => bajar("repuestos",
+  ["Estado","Por_que","Llave","Repuesto","Codigos","Codigo_a_pedir","Familia","Sistema","Reparacion","ABC","XYZ","UdM","Demanda_mes","Stock","Transito_OC","Transito_RQ_sin_OC","Lead_time","Punto_reorden","Sugerido","Monto_sin_IGV","Cobertura_meses","Consumo_12M_S","Proveedor_sugerido","Importacion","Ultima_compra","Ultimo_precio","Saldo_ppto","Liberable","En_RQ"],
+  F.filter(r=>pasa(r)).map(r=>[EST[r.c.e][0],sinTags(porque(r)),r.k,r.n,r.cod.map(c=>c.c).join(" "),r.c.tgt,r.f,r.f2,r.f3,r.abc,r.xyz,r.um,r.c.dem,r.c.stock,r.oc||0,r.rq||0,r.c.lt,r.c.rop,r.c.sug,r.c.vsug,r.c.cob,r.v12,r.c.prov,r.c.imp?"Sí":"No",r.uf,r.upr,r.c.sk.length?r.c.saL:null,r.c.lib,CART.has(r.k)?"Sí":"No"]));
+$("#rqCsv").onclick = () => bajar("rq_armado",
+  ["RQ","Llave","Codigo","Producto","Marca","Estado","Stock","Transito_OC","Transito_RQ_sin_OC","Prom_mes","Sugerido","Cantidad","UdM","Precio_ref_sin_IGV","Monto_sin_IGV","Monto_con_IGV","Saldo_SKU","Deficit","Proveedor_sugerido","Nota"],
+  gruposRQ().flatMap(g=>g.ls.map(x=>[g.k,x.k,x.L.c,prodDe(x),marcaDe(x.r,x.L.c),EST[x.r.c.e][0],x.r.c.stock,x.r.oc||0,x.r.rq||0,x.r.c.dem,x.r.c.sug,x.L.q,x.r.um,x.pr,x.monto,x.igv,x.sk?x.sk.sa:null,x.def,x.r.c.prov,x.nota])));
+$("#rqCopy").onclick = () => copiarLineas(lineas());
+$("#rqFon").onclick = () => { FD.scope=""; tab("fon"); };
+$("#rqClear").onclick = vaciar;
+$("#rqFix").onclick = () => { punto("ajustar a mi criterio"); fijar(); guardar(); renderRQ(); toast("Los grupos ahora son tus RQ: renómbralos o mueve líneas", true); };
+$("#rqNew").onclick = () => { const n=nombreNuevo(); if (!n) return; if (RQ.grupos.includes(n)) return toast(`Ya existe un RQ llamado ${n}`);
+  punto(`crear el RQ ${n}`); RQ.grupos.push(n); guardar(); renderRQ(); };
+$("#rqReset").onclick = () => { if (!CART.size) return; punto("restablecer todo a lo sugerido"); [...CART.keys()].forEach(restablecer); guardar(); renderRQ();
+  toast("Cantidades, precios, códigos y notas volvieron a lo sugerido", true); };
+const BUSCA = {i:0, res:[]};
+function buscar(texto){ const ws=texto.toLowerCase().split(/\s+/).filter(Boolean), t=texto.toLowerCase(); if (!ws.length) return [];
+  return F.filter(r=>{ const hay=(r.k+" "+r.n+" "+r.cod.map(c=>c.c+" "+(c.n||"")+" "+(c.p||"")+" "+(c.m||"")).join(" ")).toLowerCase(); return ws.every(w=>hay.includes(w)); })
+    .sort((a,b)=>(b.k.toLowerCase()===t)-(a.k.toLowerCase()===t) || b.k.toLowerCase().startsWith(t)-a.k.toLowerCase().startsWith(t)
+      || b.n.toLowerCase().startsWith(t)-a.n.toLowerCase().startsWith(t) || (b.v12||0)-(a.v12||0)); }
+function pintaBusca(){ const box=$("#rqSugBox"), texto=$("#rqAdd").value.trim();
+  box.hidden = texto.length<2 || document.activeElement!==$("#rqAdd"); if (texto.length<2) { BUSCA.res=[]; return; }
+  const todos = buscar(texto); BUSCA.res = todos.slice(0,12); BUSCA.i = Math.min(BUSCA.i, Math.max(0, BUSCA.res.length-1));
+  box.innerHTML = BUSCA.res.length ? BUSCA.res.map((r,i)=>{ const ya=CART.has(r.k);
+      return `<div class="sgi ${i===BUSCA.i?"on":""} ${ya?"ya":""}" data-i="${i}" role="option" aria-selected="${i===BUSCA.i}">
+        <span><b>${esc(r.k)}</b> · ${esc(r.n)}<div class="cd">${esc(r.cod.slice(0,5).map(c=>c.c).join(", "))}${r.cod.length>5?"…":""} · ${esc(r.f2||r.f||"")}</div></span>
+        <span class="sgm">${estBadge(r)}<span class="cd">stock ${qty(r.c.stock,r.um)} · sugerido ${r.c.sug?qty(r.c.sug,r.um):"–"}</span></span>
+        <span class="sga">${ya?"✓ en el RQ":"+ Agregar"}</span></div>`; }).join("")
+      + `<div class="cd" style="padding:6px 10px">${todos.length>12?`${n0(todos.length-12)} más: escribe algo más para afinar · `:""}↑ ↓ para moverte · Enter agrega · Esc cierra</div>`
+    : `<div class="cd" style="padding:10px">Nada coincide con “${esc(texto)}”. Prueba con parte del nombre, la llave, un código o el número de parte.</div>`;
+  $$("#rqSugBox .sgi").forEach(el=>el.onmousedown=e=>{ e.preventDefault(); agregaBusca(BUSCA.res[+el.dataset.i]); });
+}
+function agregaBusca(r){ if (!r) return; if (CART.has(r.k)) return toast(`${r.k} ya está en el RQ`);
+  punto(`agregar ${r.k}`); agregar(r); guardar(); toast(`${r.k} · ${r.n.slice(0,40)} agregada al RQ`, true); renderRQ(); pintaSel(); pintaBusca(); }
+$("#rqAdd").oninput = () => { BUSCA.i=0; pintaBusca(); };
+$("#rqAdd").onfocus = pintaBusca;
+$("#rqAdd").onblur = () => setTimeout(()=>{ $("#rqSugBox").hidden=true; }, 150);
+$("#rqAdd").onkeydown = e => {
+  if (e.key==="ArrowDown" || e.key==="ArrowUp"){ e.preventDefault(); const n=BUSCA.res.length; if (n){ BUSCA.i=(BUSCA.i+(e.key==="ArrowDown"?1:n-1))%n; pintaBusca(); $("#rqSugBox .sgi.on")?.scrollIntoView({block:"nearest"}); } return; }
+  if (e.key==="Escape"){ e.target.value=""; pintaBusca(); return; }
+  if (e.key!=="Enter") return;
+  const v=e.target.value.trim(); if (!v) return;
+  // varias llaves o códigos pegados de una vez (separados por espacio, coma o punto y coma)
+  const ks=v.split(/[\s,;]+/).filter(Boolean), res=ks.map(t=>IDX.has(t) ? t : (IDX.has(t.toUpperCase()) ? t.toUpperCase() : COD2K.get(t.toLowerCase())));
+  if (ks.length>1 && res.every(Boolean)){ punto(`agregar ${ks.length} llaves`); res.forEach(k=>agregar(BYK(k))); guardar(); e.target.value="";
+    toast(`${new Set(res).size} llaves agregadas al RQ`, true); renderRQ(); pintaSel(); pintaBusca(); return; }
+  agregaBusca(BUSCA.res[BUSCA.i]);
+};
+// lista "Ordenar por" de la pestaña 2 (equivale a hacer clic en el encabezado)
+$("#rqSort").innerHTML = `<option value="">Como se agregaron</option>` + RQCOLS.map(([k,l])=>`<option value="${k}">${l}</option>`).join("");
+$("#rqSort").onchange = e => { RQ.sort=e.target.value; RQ.dir=RQNUM.has(RQ.sort)?-1:1; renderRQ(); };
+$("#rqDir").onclick = () => { RQ.dir*=-1; renderRQ(); };
+$("#bPlanCopy").onclick = () => { if (!PLAN.length) return toast("No hay redistribución que copiar");
+  const t = [["SKU_origen","Llave_origen","Motivo","SKU_destino","Llave_destino","RQ_destino","Monto_con_IGV","Centro","Situacion","Sustento"].join("\t")]
+    .concat(PLAN.map(p=>[p.s.id,p.s.r.k,PRIO[p.s.pr],p.n.L.c,p.n.k,GBY[RQ.by](p.n.r,p.n.L),Math.ceil(p.m).toString(),M.centro,M.situacion,"MANTENIMIENTO CORRECTIVO"].join("\t")));
+  copiar(t.join("\n"), `${PLAN.length} movimientos copiados`); };
+$("#bNecCopy").onclick = () => copiarPide(NEC);
+$("#bSug").onclick = sugerir;
+$("#bSelClr").onclick = () => { if (!FD.sel.size) return; punto("quitar la selección de saldos"); FD.sel.clear(); guardar(); renderFon(); toast("Selección de saldos quitada", true); };
+let tq; $("#sQ").oninput = e => { clearTimeout(tq); tq=setTimeout(()=>{ FD.q=e.target.value.trim(); pintaSrc(); },150); };
+$("#sPr").onchange = e => { FD.pr = e.target.value; pintaSrc(); };
+$("#sSame").onchange = e => { FD.same = e.target.checked; pintaFon(); pintaSrc(); };
+$("#sSolo").onchange = e => { FD.solo = e.target.checked; pintaSrc(); };
+$("#sMin").oninput = e => { FD.min = Math.max(0, parseFloat(e.target.value)||0); pintaSrc(); };
+$("#bUndo").onclick = deshacer; $("#bRedo").onclick = rehacer;
+
+// ---------- pestañas y render ----------
+let TAB = "rep";
+function tab(t){ TAB=t; $$(".tab").forEach(b=>{b.classList.toggle("on",b.dataset.t===t); b.setAttribute("aria-selected",b.dataset.t===t);});
+  $("#v-rep").hidden = t!=="rep"; $("#v-rq").hidden = t!=="rq"; $("#v-fon").hidden = t!=="fon"; render(); window.scrollTo({top:0}); }
+function render(){ $("#cRep").textContent = n0(F.filter(r=>pasa(r)).length);
+  if (TAB==="rep") { kpis(); renderRep(); } else if (TAB==="rq") renderRQ(); else renderFon();
+  pintaSel(); pintaBulk(); if (TAB!=="fon") { $("#fonbar").hidden=true; pintaFonCnt(); } }
+function pintaFonCnt(){ const d=datosFon(), f=Math.max(0, sum(d.nec,x=>x.def)-sum(d.plan,p=>p.m));
+  $("#cFon").textContent = f>0.5 ? "falta "+sol(f) : (CART.size ? "✓" : ""); $("#cFon").classList.toggle("hot", f>0.5); }
+// Refresca la pestaña visible sin perder el lugar (tras agregar/quitar desde el detalle)
+function refrescar(){ const y=window.scrollY; render(); window.scrollTo({top:y}); }
+
+function init(){
+  $("#sub").textContent = `Kardex al ${M.corte} · consumo hasta ${M.ultimo} · generado ${M.generado} · lead time ${M.odoo?"real de Odoo (mediana "+M.lt_general+" días)":"por defecto"} · presupuesto ${M.centro} ${M.situacion}`;
+  $("#pCentro").textContent = `${M.centro} ${M.situacion}`;
+  opts("#fFam","f","Familia"); opts("#fSis","f2","Sistema"); opts("#fRep","f3","Reparación/subgrupo"); opts("#fUso","u","Uso");
+  $("#pGrupos").innerHTML += M.grupos.map(g=>`<label class="chk"><input type="checkbox" data-g="${esc(g)}" ${P.grupos[g]?"checked":""}> ${esc(g)}</label>`).join("");
+  const pv = {pBase:"base",pCob:"cob",pSob:"sob",pEsp:"espor",pLtN:"ltN",pLtI:"ltI",pLtMin:"ltMin",pMrest:"mrest",pIgv:"igv"};
+  Object.entries(pv).forEach(([id,k])=>$("#"+id).value=P[k]); $("#pLtOwn").checked=P.ltOwn; $("#pRq").checked=P.rq;
+  if (!M.odoo) { $("#pLtOwn").checked=false; $("#pLtOwn").disabled=true; P.ltOwn=false; }
+  const onP = () => { Object.entries(pv).forEach(([id,k])=>{ const el=$("#"+id); P[k] = el.tagName==="SELECT" ? el.value : (parseFloat(el.value)||0); });
+    if (!P.sob) P.sob=6; if (!P.igv) P.igv=1.18; P.ltOwn=$("#pLtOwn").checked; P.rq=$("#pRq").checked;
+    $$("#pGrupos input[data-g]").forEach(i=>P.grupos[i.dataset.g]=i.checked); saveP(); recalc(); refrescar(); };
+  $$("#params input,#params select").forEach(el=>el.addEventListener("change",onP));
+  $("#bParams").onclick = () => { const p=$("#params"); p.hidden=!p.hidden; $("#bParams").setAttribute("aria-expanded",!p.hidden); };
+  $("#bLeg").onclick = () => { const l=$("#leg"); l.hidden=!l.hidden; $("#bLeg").setAttribute("aria-expanded",!l.hidden); if (!l.hidden) l.innerHTML=leyenda(); };
+  let t; $("#q").oninput = e => { clearTimeout(t); t=setTimeout(()=>{S.q=e.target.value.trim().toLowerCase(); S.page=0; render();},150); };
+  [["#fFam","fam"],["#fSis","sis"],["#fRep","rep"],["#fUso","uso"]].forEach(([s,k])=>$(s).onchange=e=>{S[k]=e.target.value; S.page=0; render();});
+  [["#fPpto","ppto"],["#fImp","imp"],["#fMulti","multi"],["#fCart","cart"]].forEach(([s,k])=>$(s).onchange=e=>{S[k]=e.target.checked; S.page=0; render();});
+  $("#pPrev").onclick=()=>{if(S.page>0){S.page--;render();}}; $("#pNext").onclick=()=>{if((S.page+1)*S.size<vista.length){S.page++;render();}};
+  $("#pSize").onchange=e=>{S.size=+e.target.value; S.page=0; render();};
+  $("#bReset").onclick=()=>{Object.assign(S,{q:"",fam:"",sis:"",rep:"",uso:"",abc:"",xyz:"",ppto:false,imp:false,multi:false,cart:false,page:0}); S.est.clear();
+    ["#q","#fFam","#fSis","#fRep","#fUso"].forEach(s=>$(s).value=""); ["#fPpto","#fImp","#fMulti","#fCart"].forEach(s=>$(s).checked=false); render();};
+  $("#bAddView").onclick = () => { const rs=vista.filter(r=>!CART.has(r.k)); if (!rs.length) return toast("Ya están todas en el RQ");
+    if (rs.length>150 && !confirm(`Se agregarán ${rs.length} llaves al RQ. ¿Continuar?`)) return; punto(`agregar ${rs.length} llaves de la vista`); rs.forEach(agregar); guardar(); toast(`${rs.length} llaves agregadas`, true); pintaSel(); };
+  $$(".tab").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape") cerrar();
+    const a=document.activeElement, enCampo = /INPUT|SELECT|TEXTAREA/.test(a.tagName) && a.type!=="checkbox";
+    if ((e.ctrlKey||e.metaKey) && !enCampo){ const k=e.key.toLowerCase();
+      if (k==="z" && !e.shiftKey){ e.preventDefault(); deshacer(); } else if (k==="y" || (k==="z" && e.shiftKey)){ e.preventDefault(); rehacer(); } }
+    if (e.key==="/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); if (TAB!=="rep") tab("rep"); $("#q").focus(); } });
+  $("#bTheme").onclick=()=>{const r=document.documentElement; const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = dark?"light":"dark"; try{localStorage.setItem("rep_theme",r.dataset.theme);}catch(e){} };
+  try{ const th=localStorage.getItem("rep_theme"); if(th) document.documentElement.dataset.theme=th; }catch(e){}
+}
+init(); recalc(); cargar(); pintaUndo(); render();
+</script>
+</body>
+</html>

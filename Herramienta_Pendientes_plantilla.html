@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pendientes de compra</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Mesa de seguimiento: barra "ver como" arriba, resumen accionable, árbol desplegable abajo; tinta petróleo, atraso en rojo */
+:root{
+  --bg:#F4F6F8;--panel:#FFFFFF;--panel2:#EEF2F5;--panel3:#F7F9FB;--line:#DDE3E9;--text:#14202B;--muted:#56657A;--faint:#8693A3;
+  --brand:#0E4C7A;--brand-soft:#E1ECF6;--on-brand:#FFFFFF;
+  --red:#B8322A;--red-soft:#FBE8E6;--amber:#A86200;--amber-soft:#FFF1D9;--green:#1D7A4B;--green-soft:#E1F3E9;
+  --violet:#6A3E9E;--violet-soft:#EEE6F8;--gray-soft:#ECEFF2;
+  --age0:#9DB9D6;--age1:#F2C28B;--age2:#E99A5C;--age3:#D86A44;--age4:#B8322A;--age5:#7E1F1A;
+  --shadow:0 1px 2px rgba(16,32,48,.05),0 3px 10px rgba(16,32,48,.05);
+  --f-ui:"Inter",system-ui,"Segoe UI",Roboto,Arial,sans-serif;--f-head:"Space Grotesk","Inter","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E141A;--panel:#151C24;--panel2:#1B242E;--panel3:#18202A;--line:#283340;--text:#E4ECF3;--muted:#A0AEBE;--faint:#778596;
+  --brand:#7FB5E6;--brand-soft:#1A2D41;--on-brand:#0E141A;
+  --red:#FF8B80;--red-soft:#3A1D1B;--amber:#F0B34E;--amber-soft:#382A12;--green:#70D2A0;--green-soft:#152E1F;
+  --violet:#C2A2EE;--violet-soft:#2A203E;--gray-soft:#222B35;
+  --age0:#3F6E9A;--age1:#8A6A3A;--age2:#A86A3F;--age3:#C0613F;--age4:#E06B5F;--age5:#FF9B90;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141A;--panel:#151C24;--panel2:#1B242E;--panel3:#18202A;--line:#283340;--text:#E4ECF3;--muted:#A0AEBE;--faint:#778596;
+  --brand:#7FB5E6;--brand-soft:#1A2D41;--on-brand:#0E141A;
+  --red:#FF8B80;--red-soft:#3A1D1B;--amber:#F0B34E;--amber-soft:#382A12;--green:#70D2A0;--green-soft:#152E1F;
+  --violet:#C2A2EE;--violet-soft:#2A203E;--gray-soft:#222B35;
+  --age0:#3F6E9A;--age1:#8A6A3A;--age2:#A86A3F;--age3:#C0613F;--age4:#E06B5F;--age5:#FF9B90;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 var(--f-ui);overflow-x:hidden}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1500px;margin:0 auto;padding-block:16px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+h1{font:600 22px/1.2 var(--f-head);margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--brand)} .btn.pri{background:var(--brand);border-color:var(--brand);color:var(--on-brand)} .btn.sm{padding:3px 9px;font-size:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:0}
+/* barra superior pegajosa */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;margin-bottom:6px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.barin{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px}
+.who{display:flex;align-items:center;gap:8px;font:600 13px var(--f-head)}
+.who select{background:var(--brand-soft);border:1px solid var(--brand);color:var(--brand);border-radius:8px;padding:6px 10px;font:600 13.5px var(--f-ui);max-width:260px}
+.barin input[type=search]{flex:1 1 240px;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:600}
+.lbl{font-size:12px;color:var(--faint)}
+.active{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted);padding:0 14px 10px}
+.active:empty{display:none}
+.pill{background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 4px 2px 10px;display:inline-flex;gap:6px;align-items:center;font-weight:600}
+.pill button{border:0;background:none;color:inherit;cursor:pointer;padding:0 6px;font-size:13px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:4px 0 12px;overflow-x:auto}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;cursor:pointer;color:var(--muted);font:600 15px var(--f-head);white-space:nowrap}
+.tab.on{color:var(--brand);border-bottom-color:var(--brand)} .tab .cnt{font:500 12px var(--f-ui);color:var(--faint);margin-left:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px;margin-bottom:12px}
+.kpi{padding:10px 13px;border-left:4px solid var(--line);text-align:left;background:var(--panel)} .kpi[data-f]{cursor:pointer} .kpi[data-f]:hover{border-color:var(--brand)}
+.kpi.sel{outline:2px solid var(--brand)}
+.kpi .v{font:600 21px/1.2 var(--f-head);font-variant-numeric:tabular-nums} .kpi .l{font-size:12px;color:var(--muted)} .kpi .s{font-size:11.5px;color:var(--faint)}
+.k-red{border-left-color:var(--red)}.k-amber{border-left-color:var(--amber)}.k-brand{border-left-color:var(--brand)}.k-green{border-left-color:var(--green)}.k-violet{border-left-color:var(--violet)}
+.row2{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:12px;margin-bottom:12px;align-items:start}
+@media (max-width:1000px){.row2{grid-template-columns:1fr}}
+.box{padding:12px 14px} .box h3{margin:0 0 8px;font:600 13px var(--f-head);color:var(--muted)}
+.box .hint{font-size:11.5px;color:var(--faint);margin-top:6px}
+.age{display:grid;gap:6px}
+.ar{display:grid;grid-template-columns:92px minmax(0,1fr) 140px;gap:10px;align-items:center;cursor:pointer;border-radius:6px;padding:2px 4px}
+.ar:hover{background:var(--panel2)} .ar.on{outline:2px solid var(--brand)}
+.ar .t{font-size:12.5px;color:var(--muted)} .ar .b{height:18px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.ar .b i{display:block;height:100%;border-radius:0 4px 4px 0} .ar .x{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.team-w{overflow-x:auto}
+.team{width:100%;border-collapse:collapse;font-size:12.5px}
+.team th{text-align:right;color:var(--faint);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.team th:first-child{text-align:left}
+.team td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.team td:first-child{text-align:left;font-weight:600}
+.team tr[data-p]{cursor:pointer} .team tr[data-p]:hover td{background:var(--panel2)} .team tr.me td{background:var(--brand-soft)}
+.team td.z{color:var(--faint)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+/* árbol */
+.tree{display:grid;gap:10px}
+.node{border-top:1px solid var(--line)} .node:first-child{border-top:0}
+.nh{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;padding:10px 14px;cursor:pointer}
+.nh:hover{background:var(--panel3)}
+.nh .nt{flex:1 1 300px;min-width:0}
+.nh .tw{display:inline-block;width:14px;color:var(--faint)}
+.lvl0>.nh .nt b{font:600 15px var(--f-head)}
+.lvl1>.nh{background:var(--panel3);padding-left:30px} .lvl1>.nh .nt b{font-size:14px}
+.lvl2>.nh{background:var(--panel2);padding-left:46px} .lvl2>.nh .nt b{font-size:13.5px}
+.lvl3>.nh{padding-left:62px}
+.ct{font-size:12px;color:var(--faint);user-select:text;margin-top:1px}
+.nh .nt b{user-select:text}
+/* botón copiar: junto a cada OC, RQ y código */
+.cp{display:inline-flex;align-items:center;gap:3px;border:1px solid transparent;background:none;color:inherit;font:inherit;padding:1px 4px;margin:-1px 0;border-radius:5px;cursor:copy;white-space:nowrap}
+.cp::after{content:"";width:11px;height:11px;flex:none;opacity:.35;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 1h8a2 2 0 0 1 2 2v8h-2V3H5z'/%3E%3Crect x='1' y='5' width='10' height='10' rx='2'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 1h8a2 2 0 0 1 2 2v8h-2V3H5z'/%3E%3Crect x='1' y='5' width='10' height='10' rx='2'/%3E%3C/svg%3E") center/contain no-repeat}
+.cp:hover{border-color:var(--line);background:var(--panel)} .cp:hover::after{opacity:.9}
+.cp:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.cp.ok{border-color:var(--green);color:var(--green)} .cp.ok::after{opacity:1}
+.nh .tw{cursor:pointer}
+.nm{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;align-items:center} .nm b{color:var(--text)}
+.leaf{overflow-x:auto;border-top:1px solid var(--line)}
+.leaf.ind{padding-left:30px}
+table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+.t th{position:sticky;top:0;background:var(--panel2);color:var(--muted);font-weight:600;font-size:12px;text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:1}
+.t th.n,.t td.n{text-align:right}
+.t td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top;font-variant-numeric:tabular-nums}
+.t td.w{white-space:normal;min-width:220px;max-width:380px}
+.tbl{overflow:auto;max-height:calc(100vh - 160px)}
+.cotbox{padding:8px 14px;display:grid;gap:6px}
+.chat{font-size:11.5px;color:var(--muted);white-space:normal}
+.cd{font-size:11px;color:var(--faint)}
+.badge{display:inline-block;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-ok{background:var(--green-soft);color:var(--green)} .b-warn{background:var(--amber-soft);color:var(--amber)} .b-bad{background:var(--red-soft);color:var(--red)}
+.b-info{background:var(--brand-soft);color:var(--brand)} .b-serv{background:var(--violet-soft);color:var(--violet)} .b-mute{background:var(--gray-soft);color:var(--muted)}
+.muted{color:var(--faint)} .neg{color:var(--red)}
+.empty{padding:32px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30}
+@media (max-width:640px){
+  .ar{grid-template-columns:70px minmax(0,1fr) 108px;gap:6px} .ar .x{font-size:11.5px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .nh{padding:9px 10px} .lvl1>.nh{padding-left:20px} .lvl2>.nh{padding-left:28px} .lvl3>.nh{padding-left:36px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Pendientes de compra · taller</h1><div class="sub" id="sub"></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="bCsv">⬇ Exportar vista (CSV)</button><button class="btn" id="bTheme">◐ Tema</button></div>
+</header>
+
+<div class="bar"><section class="card">
+  <div class="barin">
+    <label class="who" for="who">Ver como <select id="who"></select></label>
+    <input type="search" id="q" placeholder="Buscar OC, RQ, llave, código, proveedor o producto…" aria-label="Buscar">
+    <span class="lbl">Empresa</span><span class="chips" id="fEmp"></span>
+    <span class="lbl">Tipo</span><span class="chips" id="fTipo"></span>
+  </div>
+  <div class="active" id="active"></div>
+</section></div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab on" data-t="oc" role="tab" aria-selected="true">OC por entregar<span class="cnt" id="cOc"></span></button>
+  <button class="tab" data-t="rq" role="tab" aria-selected="false">RQ sin OC<span class="cnt" id="cRq"></span></button>
+</nav>
+
+<main id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const D = /*__DATOS__*/null;
+const M = D.meta, OC = D.oc, RQ = D.rq, CT = D.ct;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => s == null ? "" : String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf0 = new Intl.NumberFormat("es-PE",{maximumFractionDigits:0}), nf2 = new Intl.NumberFormat("es-PE",{maximumFractionDigits:2});
+const ok = v => v!=null && isFinite(v);
+const n0 = v => ok(v) ? nf0.format(v) : "–", q2 = v => ok(v) ? nf2.format(v) : "–", sol = v => ok(v) ? "S/ "+nf0.format(v) : "–";
+const fd = s => s ? s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(2,4) : "–";
+const sum = (a,f) => a.reduce((s,x)=>s+(f(x)||0),0);
+const uniq = a => [...new Set(a)];
+const nombre = s => (s||"").replace(/\s+S\.?A\.?C\.?$|\s+S\.?A\.?$|\s+E\.?I\.?R\.?L\.?$/i,"");
+const RAZON = {TATSA:"TATSA PERÚ S.A.C.", TVL:"TRANSVIAL LIMA S.A.C."};
+const TIPOS = ["Repuesto","Insumo / herramienta","Servicio"];
+const tipoBadge = t => `<span class="badge ${t==="Servicio"?"b-serv":t==="Repuesto"?"b-info":"b-mute"}">${esc(t)}</span>`;
+const SIN_CM = "Sin comprador";
+
+// ---------- estados ----------
+const TR_OC = [["En plazo",-1e9,0,"--age0"],["1–15 días",1,15,"--age1"],["16–30",16,30,"--age2"],["31–60",31,60,"--age3"],["61–90",61,90,"--age4"],["Más de 90",91,1e9,"--age5"]];
+const TR_RQ = [["0–7 días",-1e9,7,"--age0"],["8–15",8,15,"--age1"],["16–30",16,30,"--age2"],["31–60",31,60,"--age3"],["61–90",61,90,"--age4"],["Más de 90",91,1e9,"--age5"]];
+const tramo = (tr,d) => tr.findIndex(t=>(d??0)>=t[1] && (d??0)<=t[2]);
+const atrasoBadge = (at,dv) => at>0 ? `<span class="badge ${at>30?"b-bad":"b-warn"}">${n0(at)} d atraso</span>` : (dv!=null && dv<=7 ? `<span class="badge b-info">vence en ${n0(dv)} d</span>` : `<span class="badge b-ok">en plazo</span>`);
+const diasBadge = d => `<span class="badge ${d>30?"b-bad":d>15?"b-warn":"b-ok"}">${n0(d)} d</span>`;
+const EC = ["Por aprobar","Aprobada · falta confirmar OC","Sin cotización adjunta","Sin proveedor","Desaprobada","Sin cotización"];
+const EC_INFO = {"Por aprobar":["b-warn","Tiene la cotización adjunta en el chat: falta pulsar Aprobar (selección técnica)"],
+  "Aprobada · falta confirmar OC":["b-info","Selección técnica aprobada: compras debe confirmar la OC"],
+  "Sin cotización adjunta":["b-bad","Tiene proveedor pero el chat no tiene cotización ni fotos: no se puede validar"],
+  "Sin proveedor":["b-bad","Cotización creada sin proveedor real (OdooBot u ODOO INC)"],
+  "Desaprobada":["b-mute","Cotización desaprobada: hay que volver a cotizar"],
+  "Sin cotización":["b-bad","Nadie la está trabajando todavía"]};
+const ORD_EC = {"Aprobada · falta confirmar OC":0,"Por aprobar":1,"Sin cotización adjunta":2,"Sin proveedor":3,"Desaprobada":4};
+const estRq = r => r.cot.length ? r.cot.map(c=>c.es).sort((a,b)=>ORD_EC[a]-ORD_EC[b])[0] : "Sin cotización";
+const ecBadge = e => `<span class="badge ${EC_INFO[e][0]}" title="${esc(EC_INFO[e][1])}">${esc(e)}</span>`;
+const cmRq = r => r.cot.length ? (r.cot.find(c=>c.cm)?.cm || SIN_CM) : SIN_CM;
+
+// ---------- estado de la página ----------
+const S = {tab:"oc", who:"", q:"", emp:new Set(), tipo:new Set(), kOc:"", kRq:"", aOc:-1, aRq:-1, gOc:null, gRq:"es", open:new Set()};
+try { const w = localStorage.getItem("pend_who"); if (w) S.who = w; } catch(e) {}
+const COMPRADORES = uniq([...OC.map(r=>r.cm||SIN_CM), ...RQ.map(cmRq)]).filter(c=>c!==SIN_CM).sort();
+if (S.who && !COMPRADORES.includes(S.who)) S.who = "";
+
+function base(r, kind){
+  if (S.who && (kind==="oc" ? (r.cm||SIN_CM) : cmRq(r)) !== S.who) return false;
+  if (S.emp.size && !S.emp.has(r.e)) return false;
+  if (S.tipo.size && !S.tipo.has(r.t)) return false;
+  if (S.q){ const hay = (kind==="oc" ? [r.oc,r.rq,r.pv,r.cm,r.c,r.k,r.n,r.ref] : [r.rq,r.so,r.c,r.k,r.n,r.obs,...r.cot.flatMap(c=>[c.oc,c.pv,c.cm,c.es])]).join(" ").toLowerCase();
+    if (!S.q.split(/\s+/).every(w=>hay.includes(w))) return false; }
+  return true;
+}
+const kOcOk = r => !S.kOc || (S.kOc==="atr" ? r.at>0 : S.kOc==="vence" ? (r.dv!=null && r.dv<=7) : S.kOc==="par" ? /parcial|parte/i.test(r.en||"") : S.kOc==="serv" ? r.t==="Servicio" : true);
+const kRqOk = r => !S.kRq || (S.kRq==="viejo" ? r.d>15 : estRq(r)===S.kRq);
+const vOc = ign => OC.filter(r=>base(r,"oc") && (ign==="k"||kOcOk(r)) && (ign==="a"||S.aOc<0||tramo(TR_OC,r.at)===S.aOc));
+const vRq = ign => RQ.filter(r=>base(r,"rq") && (ign==="k"||kRqOk(r)) && (ign==="a"||S.aRq<0||tramo(TR_RQ,r.d)===S.aRq));
+const nOc = rs => uniq(rs.map(r=>r.e+r.oc)).length, nRq = rs => uniq(rs.map(r=>r.e+r.rq)).length;
+
+// ---------- utilidades ----------
+function toast(m){ const t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200); }
+function copiar(txt,msg){ const fb=()=>{const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy"); toast(msg);}catch(e){toast("No se pudo copiar");} ta.remove();};
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(()=>toast(msg)).catch(fb); else fb(); }
+// Código copiable: botón que copia solo el texto y no abre/cierra la fila
+const cp = (v, bold=false) => v ? `<button type="button" class="cp" data-cp="${esc(v)}" title="Copiar ${esc(v)}">${bold?`<b>${esc(v)}</b>`:esc(v)}</button>` : "";
+document.addEventListener("click", e => { const b = e.target.closest("[data-cp]"); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  copiar(b.dataset.cp, `${b.dataset.cp} copiado`); b.classList.add("ok"); setTimeout(()=>b.classList.remove("ok"), 1200); }, true);
+function agrupar(rows, key){ const g=new Map(); rows.forEach(r=>{ const k=key(r)||"(sin dato)"; if(!g.has(k)) g.set(k,[]); g.get(k).push(r); }); return [...g.entries()]; }
+function mensajeProveedor(pv, rows){
+  let t = `Estimados ${pv}:\n\nLes compartimos las órdenes de compra pendientes al ${fd(M.hoy)}:\n`;
+  agrupar(rows, r=>r.e).forEach(([e, rs])=>{ t += `\n${RAZON[e]||e}\n`;
+    agrupar(rs, r=>r.oc).forEach(([oc, ls])=>{ const r0=ls[0];
+      t += `• ${oc}${r0.ref?` (su ref. ${r0.ref})`:""} · entrega prevista ${fd(r0.fp)}${r0.at>0?` · ${r0.at} días de atraso`:""}\n`;
+      ls.forEach(l=>{ t += `   - ${l.c||""} ${l.n||""}: ${q2(l.qp)} pendiente${l.q?` de ${q2(l.q)}`:""}\n`; }); }); });
+  return t + `\nAgradeceremos confirmar la fecha de entrega de cada orden.\nSaludos.`;
+}
+
+// ---------- árbol genérico ----------
+// niveles: [{key, head(k, rows, id) -> {title, ct, meta, btn}, order(a,b)}], hoja: leaf(rows) -> html
+let IDS = [];
+function arbol(rows, niveles, leaf, prefijo, nivel=0){
+  const L = niveles[nivel];
+  let gs = agrupar(rows, L.key).map(([k,rs])=>({k, rs}));
+  if (L.order) gs.sort(L.order);
+  return gs.map(g=>{ const id = prefijo+"›"+g.k; IDS.push(id); const h = L.head(g.k, g.rs, id), open = S.open.has(id);
+    return `<div class="node lvl${nivel}"><div class="nh" data-id="${esc(id)}" role="button" tabindex="0" aria-expanded="${open}">
+      <span class="nt"><span class="tw">${open?"▾":"▸"}</span>${h.title}${h.ct?`<div class="ct">${h.ct}</div>`:""}</span><span class="nm">${h.meta}</span>${h.btn||""}</div>
+      ${open ? (nivel+1<niveles.length ? arbol(g.rs, niveles, leaf, id, nivel+1) : `<div class="leaf">${leaf(g.rs, g.k)}</div>`) : ""}</div>`; }).join("");
+}
+function enlazarArbol(cont){
+  $$(cont+" .nh").forEach(h=>{
+    h.onclick = e => {
+      if (e.target.closest("button")) return;
+      clearTimeout(enlazarArbol.t);
+      if (e.detail > 1) return;                                   // doble/triple clic = seleccionar texto
+      if (String(getSelection()||"").trim()) return;              // arrastró para seleccionar
+      // espera un instante: si llega un doble clic o una selección, no se abre/cierra
+      enlazarArbol.t = setTimeout(()=>{ if (!String(getSelection()||"").trim()) alternar(h.dataset.id); }, 230);
+    };
+    h.onkeydown = e => { if ((e.key==="Enter"||e.key===" ") && !e.target.closest("button")) { e.preventDefault(); alternar(h.dataset.id, true); } }; });
+}
+// Abre/cierra un nodo sin que la pantalla salte: la fila pulsada se queda en el mismo lugar
+function alternar(id, teclado=false){
+  const sel = el => $$("#main .nh").find(x=>x.dataset.id===id);
+  const antes = sel()?.getBoundingClientRect().top;
+  S.open.has(id) ? S.open.delete(id) : S.open.add(id);
+  render();
+  const h = sel();
+  if (h){ if (antes!=null) window.scrollBy(0, h.getBoundingClientRect().top - antes); if (teclado) h.focus({preventScroll:true}); }
+}
+
+// ---------- piezas comunes ----------
+function kpis(cards, key){
+  return `<section class="kpis">${cards.map(c=>`<button class="card kpi ${c[1]} ${c[0]&&S[key]===c[0]?"sel":""}" ${c[0]?`data-f="${esc(c[0])}" data-key="${key}"`:"disabled"} type="button"><div class="v">${c[2]}</div><div class="l">${c[3]}</div><div class="s">${c[4]}</div></button>`).join("")}</section>`;
+}
+function edades(tr, rows, getD, key, titulo){
+  const v = tr.map((t,i)=>{ const rs=rows.filter(r=>tramo(tr,getD(r))===i); return {t, v:sum(rs,r=>r.v), n:uniq(rs.map(r=>r.e+(r.oc||r.rq))).length}; });
+  const mx = Math.max(1,...v.map(x=>x.v));
+  return `<section class="card box"><h3>${titulo}</h3><div class="age">${v.map((x,i)=>`<div class="ar ${S[key]===i?"on":""}" data-i="${i}" data-key="${key}" role="button" tabindex="0" title="${esc(x.t[0])}: ${sol(x.v)} en ${x.n} documentos">
+    <span class="t">${esc(x.t[0])}</span><span class="b"><i style="width:${Math.max(x.v?1.5:0,x.v/mx*100)}%;background:var(${x.t[3]})"></i></span>
+    <span class="x"><b>${sol(x.v)}</b> · ${n0(x.n)}</span></div>`).join("")}</div><div class="hint">Clic en un tramo para filtrar.</div></section>`;
+}
+function enlazarComunes(){
+  $$("#main [data-key]").forEach(el=>{ const k=el.dataset.key;
+    el.onclick = () => { if (el.dataset.f!==undefined) S[k] = S[k]===el.dataset.f ? "" : el.dataset.f; else { const i=+el.dataset.i; S[k] = S[k]===i ? -1 : i; } render(); }; });
+  $$("#main .team tr[data-p]").forEach(tr=>tr.onclick=()=>setWho(tr.dataset.p));
+}
+function toolbar(opciones, actual, key){
+  return `<div class="toolbar"><span class="lbl">Agrupar</span><span class="chips">${opciones.map(([k,l])=>`<span class="chip ${actual===k?"on":""}" data-g="${k}" data-gk="${key}" role="button" tabindex="0">${esc(l)}</span>`).join("")}</span>
+    <button class="btn sm" data-all="1">Abrir todo</button><button class="btn sm" data-all="0">Cerrar todo</button></div>`;
+}
+
+// ---------- OC por entregar ----------
+function itemsOc(rows){
+  return `<table class="t"><thead><tr><th>Tipo</th><th>Código</th><th>Llave</th><th>Producto</th><th class="n">Pendiente</th><th class="n">S/</th><th>Entrega</th><th>RQ</th><th>Centro</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${tipoBadge(r.t)}</td><td>${cp(r.c)}</td><td><span class="cd">${cp(r.k)}</span></td><td class="w">${esc(r.n)}</td>
+      <td class="n">${q2(r.qp)}<div class="cd">de ${q2(r.q)}</div></td><td class="n">${sol(r.v)}</td><td><span class="cd">${esc(r.en||"")}</span></td><td>${cp(r.rq)}</td><td><span class="cd">${esc(r.cc)}</span></td></tr>`).join("")}
+  </tbody></table>`;
+}
+function listaOc(rows){
+  return `<table class="t"><thead><tr><th>OC</th><th>Proveedor</th><th>Comprador</th><th>Tipo</th><th>Código</th><th>Llave</th><th>Producto</th><th class="n">Pend.</th><th class="n">S/</th><th>Prevista</th><th>Estado</th><th>RQ</th></tr></thead><tbody>
+    ${[...rows].sort((a,b)=>(b.at||0)-(a.at||0) || (a.oc>b.oc?1:-1)).map(r=>`<tr><td>${cp(r.oc,true)}<div class="cd">${esc(r.e)} · ${fd(r.fo)}${r.ref?" · ref "+esc(r.ref):""}</div></td>
+      <td>${esc(nombre(r.pv))}</td><td>${esc(r.cm||"")}</td><td>${tipoBadge(r.t)}</td><td>${cp(r.c)}</td><td><span class="cd">${cp(r.k)}</span></td><td class="w">${esc(r.n)}</td>
+      <td class="n">${q2(r.qp)}<div class="cd">de ${q2(r.q)}</div></td><td class="n">${sol(r.v)}</td><td>${fd(r.fp)}</td><td>${atrasoBadge(r.at,r.dv)}</td><td>${cp(r.rq)}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+const metaOc = rs => { const va=sum(rs.filter(r=>r.at>0),r=>r.v), mx=Math.max(0,...rs.map(r=>r.at||0));
+  return `<span><b>${n0(nOc(rs))}</b> OC</span><span><b>${sol(sum(rs,r=>r.v))}</b></span><span class="${va?"neg":""}"><b>${sol(va)}</b> atrasado</span>${mx?`<span>máx <b>${n0(mx)} d</b></span>`:""}`; };
+const ordenOc = (a,b) => sum(b.rs.filter(r=>r.at>0),r=>r.v)-sum(a.rs.filter(r=>r.at>0),r=>r.v) || sum(b.rs,r=>r.v)-sum(a.rs,r=>r.v);
+const NIV_OC = {
+  cm: {key:r=>r.cm||SIN_CM, order:ordenOc, head:(k,rs)=>({title:`<b>${esc(k)}</b>`, ct:`${n0(uniq(rs.map(r=>r.pv)).length)} proveedores`, meta:metaOc(rs)})},
+  pv: {key:r=>r.pv, order:ordenOc, head:(k,rs)=>{ const c=CT[rs.find(r=>r.pid)?.pid];
+        return {title:`<b>${esc(k)}</b>`, ct:c?`${c.ruc?"RUC "+esc(c.ruc)+" · ":""}${esc(c.mail||"sin correo")}${c.tel?" · "+esc(c.tel):""}`:"", meta:metaOc(rs),
+                btn:`<button class="btn sm pri" data-msg="${esc(k)}">Copiar mensaje</button>`}; }},
+  oc: {key:r=>r.e+"|"+r.oc, order:(a,b)=>Math.max(0,...b.rs.map(r=>r.at||0))-Math.max(0,...a.rs.map(r=>r.at||0)),
+       head:(k,rs)=>{ const r=rs[0], at=Math.max(0,...rs.map(x=>x.at||0));
+         return {title:`${cp(r.oc,true)} · ${esc(r.e)}${S.gOc==="pv" && !S.who?` · ${esc(r.cm||"")}`:""}${r.ref?` <span class="cd">ref ${cp(r.ref)}</span>`:""}`,
+                 meta:`<span>emitida <b>${fd(r.fo)}</b></span><span>prevista <b>${fd(r.fp)}</b></span>${atrasoBadge(at,r.dv)}<span><b>${n0(rs.length)}</b> ítems</span><span><b>${sol(sum(rs,x=>x.v))}</b></span>`}; }},
+};
+function equipoOc(rows){
+  const g = agrupar(rows, r=>r.cm||SIN_CM).map(([k,rs])=>({k, n:nOc(rs), v:sum(rs,r=>r.v), va:sum(rs.filter(r=>r.at>0),r=>r.v), na:nOc(rs.filter(r=>r.at>0)), mx:Math.max(0,...rs.map(r=>r.at||0))})).sort((a,b)=>b.va-a.va);
+  return `<section class="card box"><h3>Equipo de compras</h3><div class="team-w"><table class="team"><tr><th>Comprador</th><th>OC</th><th>Pendiente</th><th>Atrasadas</th><th>S/ atrasado</th><th>Atraso máx</th></tr>
+    ${g.map(x=>`<tr data-p="${esc(x.k)}" class="${S.who===x.k?"me":""}"><td>${esc(x.k)}</td><td>${n0(x.n)}</td><td>${sol(x.v)}</td><td class="${x.na?"neg":"z"}">${n0(x.na)}</td><td class="${x.va?"neg":"z"}"><b>${sol(x.va)}</b></td><td>${n0(x.mx)} d</td></tr>`).join("")}
+  </table></div><div class="hint">Clic en un comprador para ver solo lo suyo.</div></section>`;
+}
+function proveedoresAtraso(rows){
+  const rk = agrupar(rows.filter(r=>r.at>0), r=>r.pv).map(([k,rs])=>({k, v:sum(rs,r=>r.v), n:nOc(rs), mx:Math.max(...rs.map(r=>r.at))})).sort((a,b)=>b.v-a.v).slice(0,8);
+  return `<section class="card box"><h3>Proveedores con más atraso</h3><div class="team-w"><table class="team"><tr><th>Proveedor</th><th>OC</th><th>S/ atrasado</th><th>Atraso máx</th></tr>
+    ${rk.length?rk.map(x=>`<tr data-pv="${esc(x.k)}" style="cursor:pointer"><td>${esc(nombre(x.k))}</td><td>${n0(x.n)}</td><td class="neg"><b>${sol(x.v)}</b></td><td>${n0(x.mx)} d</td></tr>`).join(""):`<tr><td class="muted">Sin OC atrasadas.</td></tr>`}
+  </table></div><div class="hint">Clic para buscar ese proveedor.</div></section>`;
+}
+function renderOc(){
+  if (!S.gOc) S.gOc = S.who ? "pv" : "cm";
+  const bk = vOc("k");
+  const atr = bk.filter(r=>r.at>0), ven = bk.filter(r=>r.dv!=null&&r.dv<=7), par = bk.filter(r=>/parcial|parte/i.test(r.en||"")), sv = bk.filter(r=>r.t==="Servicio");
+  const vt = sum(bk,r=>r.v), va = sum(atr,r=>r.v), prom = va ? sum(atr,r=>r.v*r.at)/va : 0;
+  const rows = vOc();
+  $("#cOc").textContent = n0(nOc(rows));
+  let html = kpis([
+    ["", "k-brand", sol(vt), "pendiente por entregar", `${n0(nOc(bk))} OC · ${n0(uniq(bk.map(r=>r.pv)).length)} proveedores`],
+    ["atr", "k-red", sol(va), "con atraso", `${n0(nOc(atr))} OC · ${vt?Math.round(va/vt*100):0}% del valor`],
+    ["vence", "k-amber", sol(sum(ven,r=>r.v)), "vence en 7 días", `${n0(nOc(ven))} OC para confirmar con el proveedor`],
+    ["", "k-violet", `${n0(prom)} d`, "atraso promedio", "ponderado por valor (solo atrasadas)"],
+    ["par", "k-green", n0(nOc(par)), "OC con entrega parcial", sol(sum(par,r=>r.v))+" pendiente"],
+    ["serv", "k-violet", sol(sum(sv,r=>r.v)), "servicios por facturar", `${n0(nOc(sv))} OC SERV-`],
+  ], "kOc");
+  html += `<div class="row2">${edades(TR_OC, vOc("a"), r=>r.at, "aOc", "Atraso frente a la fecha prevista (S/ pendiente)")}${S.who ? proveedoresAtraso(bk) : equipoOc(bk)}</div>`;
+  const ops = S.who ? [["pv","Proveedor › OC"],["lista","Lista"]] : [["cm","Comprador › Proveedor › OC"],["pv","Proveedor › OC"],["lista","Lista"]];
+  if (!ops.some(o=>o[0]===S.gOc)) S.gOc = ops[0][0];
+  html += toolbar(ops, S.gOc, "gOc");
+  IDS = [];
+  if (!rows.length) html += `<div class="card empty">No hay OC pendientes con estos filtros.</div>`;
+  else if (S.gOc==="lista") html += `<section class="card"><div class="tbl">${listaOc(rows)}</div></section>`;
+  else { const niv = S.gOc==="cm" ? [NIV_OC.cm, NIV_OC.pv, NIV_OC.oc] : [NIV_OC.pv, NIV_OC.oc];
+    html += `<div class="tree">${agrupar(rows, ()=>"x").map(()=>`<section class="card">${arbol(rows, niv, itemsOc, "oc:"+S.gOc)}</section>`).join("")}</div>`; }
+  $("#main").innerHTML = html;
+  enlazarComunes(); enlazarArbol("#main"); enlazarToolbar();
+  $$("#main [data-msg]").forEach(b=>b.onclick=()=>{ const pv=b.dataset.msg; copiar(mensajeProveedor(pv, rows.filter(r=>r.pv===pv)), `Mensaje para ${nombre(pv)} copiado`); });
+  $$("#main tr[data-pv]").forEach(tr=>tr.onclick=()=>{ S.q = tr.dataset.pv.toLowerCase(); $("#q").value = tr.dataset.pv; render(); });
+}
+
+// ---------- RQ sin OC ----------
+function cotHtml(c){
+  return `<div>${ecBadge(c.es)} ${cp(c.oc,true)} · ${c.pv?esc(nombre(c.pv)):'<span class="neg">sin proveedor</span>'}
+    <span class="cd"> · ${esc(c.cm||"")} · ${c.adj?`${n0(c.adj)} adjunto${c.adj>1?"s":""}`:"sin adjuntos"}${c.ut?` · aprobada por ${esc(c.ut)} el ${fd(c.ft)}`:""}</span>
+    <div class="chat">${c.ult?`Último mensaje · ${esc(c.ult.a||"")} ${esc(c.ult.f.slice(8,10)+"/"+c.ult.f.slice(5,7))}: ${esc(c.ult.t||"(solo adjunto)")}`:"Sin mensajes en el chat."}</div></div>`;
+}
+function itemsRq(rows){
+  const r0 = rows[0];
+  return `<div class="cotbox">${r0.cot.length ? r0.cot.map(cotHtml).join("") : `<div>${ecBadge("Sin cotización")} <span class="cd">${esc(EC_INFO["Sin cotización"][1])}</span></div>`}</div>
+  <table class="t"><thead><tr><th>Tipo</th><th>Código</th><th>Llave</th><th>Producto</th><th class="n">Pendiente</th><th class="n">S/</th><th>Observación</th><th>Centro</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${tipoBadge(r.t)}</td><td>${cp(r.c)}</td><td><span class="cd">${cp(r.k)}</span></td><td class="w">${esc(r.n)}</td>
+      <td class="n">${q2(r.qp)}${r.qo?`<div class="cd">ya pedido ${q2(r.qo)}</div>`:""}</td><td class="n">${sol(r.v)}</td>
+      <td class="w"><span class="cd">${esc((r.obs||"").replace(/Cotización en curso:[^|]*\|?/,""))}</span></td><td><span class="cd">${esc(r.cc)}</span></td></tr>`).join("")}
+  </tbody></table>`;
+}
+function listaRq(rows){
+  return `<table class="t"><thead><tr><th>RQ</th><th>Aprobado</th><th>Estado cotización</th><th>Comprador</th><th>Tipo</th><th>Código</th><th>Llave</th><th>Producto</th><th class="n">Pendiente</th><th class="n">S/</th><th>Cotización</th></tr></thead><tbody>
+    ${[...rows].sort((a,b)=>(b.d||0)-(a.d||0) || (a.rq>b.rq?1:-1)).map(r=>`<tr><td>${cp(r.rq,true)}<div class="cd">${esc(r.e)} · creado ${fd(r.fc)}</div></td>
+      <td>${fd(r.fa)} ${diasBadge(r.d)}</td><td>${ecBadge(estRq(r))}</td><td>${esc(cmRq(r))}</td><td>${tipoBadge(r.t)}</td><td>${cp(r.c)}</td><td><span class="cd">${cp(r.k)}</span></td><td class="w">${esc(r.n)}</td>
+      <td class="n">${q2(r.qp)}</td><td class="n">${sol(r.v)}</td><td><span class="cd">${esc(r.cot.map(c=>c.oc+(c.pv?" · "+nombre(c.pv):" · sin proveedor")).join(" | "))}</span></td></tr>`).join("")}
+  </tbody></table>`;
+}
+const metaRq = rs => `<span><b>${n0(nRq(rs))}</b> RQ</span><span><b>${n0(rs.length)}</b> líneas</span><span><b>${sol(sum(rs,r=>r.v))}</b></span><span>más antiguo <b>${n0(Math.max(0,...rs.map(r=>r.d||0)))} d</b></span>`;
+const NIV_RQ = {
+  es: {key:estRq, order:(a,b)=>EC.indexOf(a.k)-EC.indexOf(b.k), head:(k,rs)=>({title:ecBadge(k), ct:esc(EC_INFO[k][1]), meta:metaRq(rs)})},
+  cm: {key:cmRq, order:(a,b)=>(a.k===SIN_CM)-(b.k===SIN_CM) || nRq(b.rs)-nRq(a.rs), head:(k,rs)=>({title:`<b>${esc(k)}</b>`, meta:metaRq(rs)})},
+  so: {key:r=>r.so, order:(a,b)=>nRq(b.rs)-nRq(a.rs), head:(k,rs)=>({title:`<b>${esc(k)}</b>`, meta:metaRq(rs)})},
+  rq: {key:r=>r.e+"|"+r.rq, order:(a,b)=>(b.rs[0].d||0)-(a.rs[0].d||0),
+       head:(k,rs)=>{ const r=rs[0];
+         return {title:`${cp(r.rq,true)} · ${esc(r.e)}${r.pr==="urgente"?' · <span class="neg">urgente</span>':""} · ${ecBadge(estRq(r))}`,
+                 ct:r.cot.length?r.cot.map(c=>cp(c.oc)+(c.pv?" · "+esc(nombre(c.pv)):"")).join(" | "):"",
+                 meta:`<span>aprobado <b>${fd(r.fa)}</b></span>${diasBadge(r.d)}<span><b>${n0(rs.length)}</b> líneas</span><span><b>${sol(sum(rs,x=>x.v))}</b></span>`}; }},
+};
+function equipoRq(rows){
+  const cols = ["Por aprobar","Aprobada · falta confirmar OC","Sin cotización adjunta","Sin proveedor","Desaprobada"];
+  const g = agrupar(rows, cmRq).map(([k,rs])=>({k, rs, n:nRq(rs)})).sort((a,b)=>(a.k===SIN_CM)-(b.k===SIN_CM) || b.n-a.n);
+  const cel = (rs,e) => { const n=nRq(rs.filter(r=>estRq(r)===e)); return `<td class="${n?(e==="Por aprobar"||e.startsWith("Aprobada")?"":"neg"):"z"}">${n?`<b>${n0(n)}</b>`:"–"}</td>`; };
+  return `<section class="card box"><h3>Equipo de compras · RQ por estado de la cotización</h3><div class="team-w"><table class="team"><tr><th>Comprador</th><th>RQ</th><th>Por aprobar</th><th>Aprobadas</th><th>Sin adjunto</th><th>Sin proveedor</th><th>Desaprob.</th><th>Más antiguo</th></tr>
+    ${g.map(x=>`<tr ${x.k!==SIN_CM?`data-p="${esc(x.k)}"`:""} class="${S.who===x.k?"me":""}"><td>${x.k===SIN_CM?'<span class="neg">Sin cotización</span>':esc(x.k)}</td><td>${n0(x.n)}</td>${cols.map(e=>cel(x.rs,e)).join("")}<td>${n0(Math.max(0,...x.rs.map(r=>r.d||0)))} d</td></tr>`).join("")}
+  </table></div><div class="hint">"Sin cotización" = RQ que ningún comprador ha tomado. Clic en un comprador para ver solo lo suyo.</div></section>`;
+}
+function renderRq(){
+  const bk = vRq("k");
+  const by = e => bk.filter(r=>estRq(r)===e);
+  const rows = vRq();
+  $("#cRq").textContent = n0(nRq(rows));
+  let html = kpis([
+    ["", "k-brand", sol(sum(bk,r=>r.v)), "RQ aprobados sin OC", `${n0(nRq(bk))} RQ · ${n0(bk.length)} líneas`],
+    ["Por aprobar", "k-amber", n0(nRq(by("Por aprobar"))), "por aprobar", "tienen la cotización adjunta"],
+    ["Aprobada · falta confirmar OC", "k-green", n0(nRq(by("Aprobada · falta confirmar OC"))), "aprobadas, falta la OC", "pendiente de compras"],
+    ["Sin cotización adjunta", "k-red", n0(nRq(by("Sin cotización adjunta"))), "sin cotización adjunta", "no se pueden validar"],
+    ["Sin proveedor", "k-red", n0(nRq(by("Sin proveedor"))), "cotización sin proveedor", "creada con OdooBot"],
+    ["Sin cotización", "k-red", n0(nRq(by("Sin cotización"))), "sin cotización", "nadie la ha tomado"],
+    ["viejo", "k-violet", n0(nRq(bk.filter(r=>r.d>15))), "más de 15 días aprobados", sol(sum(bk.filter(r=>r.d>15),r=>r.v))],
+  ], "kRq");
+  html += `<div class="row2">${edades(TR_RQ, vRq("a"), r=>r.d, "aRq", "Días desde la aprobación del RQ (S/ pendiente)")}${equipoRq(bk)}</div>`;
+  const ops = S.who ? [["es","Estado › RQ"],["lista","Lista"]] : [["es","Estado › Comprador › RQ"],["cm","Comprador › Estado › RQ"],["so","Solicitante › RQ"],["lista","Lista"]];
+  if (!ops.some(o=>o[0]===S.gRq)) S.gRq = ops[0][0];
+  html += toolbar(ops, S.gRq, "gRq");
+  IDS = [];
+  if (!rows.length) html += `<div class="card empty">No hay RQ sin OC con estos filtros.</div>`;
+  else if (S.gRq==="lista") html += `<section class="card"><div class="tbl">${listaRq(rows)}</div></section>`;
+  else { const niv = S.gRq==="es" ? (S.who ? [NIV_RQ.es, NIV_RQ.rq] : [NIV_RQ.es, NIV_RQ.cm, NIV_RQ.rq]) : S.gRq==="cm" ? [NIV_RQ.cm, NIV_RQ.es, NIV_RQ.rq] : [NIV_RQ.so, NIV_RQ.rq];
+    html += `<section class="card">${arbol(rows, niv, itemsRq, "rq:"+S.gRq+":"+(S.who?"1":"0"))}</section>`; }
+  $("#main").innerHTML = html;
+  enlazarComunes(); enlazarArbol("#main"); enlazarToolbar();
+}
+
+// ---------- general ----------
+function enlazarToolbar(){
+  $$("#main [data-g]").forEach(c=>c.onclick=()=>{ S[c.dataset.gk]=c.dataset.g; render(); });
+  $$("#main [data-all]").forEach(b=>b.onclick=()=>{
+    if (b.dataset.all==="1") { // abre todos los niveles: se repite hasta que no aparezcan nodos nuevos
+      for (let i=0;i<4;i++){ const antes=S.open.size; IDS.forEach(id=>S.open.add(id)); render(); if (S.open.size===antes) break; }
+    } else { const pre = S.tab==="oc" ? "oc:" : "rq:"; [...S.open].filter(k=>k.startsWith(pre)).forEach(k=>S.open.delete(k)); render(); }
+  });
+}
+function activos(){
+  const p = [];
+  if (S.who) p.push(["who",`Comprador: ${S.who}`]);
+  if (S.q) p.push(["q",`Búsqueda: "${S.q}"`]);
+  S.emp.forEach(e=>p.push(["emp:"+e,e])); S.tipo.forEach(t=>p.push(["tipo:"+t,t]));
+  const k = S.tab==="oc" ? S.kOc : S.kRq; if (k) p.push([S.tab==="oc"?"kOc":"kRq", {atr:"Con atraso",vence:"Vence en 7 días",par:"Entrega parcial",serv:"Servicios",viejo:"Más de 15 días"}[k]||k]);
+  const a = S.tab==="oc" ? S.aOc : S.aRq; if (a>=0) p.push([S.tab==="oc"?"aOc":"aRq", "Tramo: "+(S.tab==="oc"?TR_OC:TR_RQ)[a][0]]);
+  $("#active").innerHTML = p.length ? `<span>Filtros:</span>${p.map(([k,l])=>`<span class="pill">${esc(l)}<button data-x="${esc(k)}" aria-label="Quitar ${esc(l)}">×</button></span>`).join("")}<button class="btn sm" id="xAll">Limpiar todo</button>` : "";
+  $$("#active [data-x]").forEach(b=>b.onclick=()=>{ const k=b.dataset.x;
+    if (k==="who") setWho(""); else if (k==="q") { S.q=""; $("#q").value=""; } else if (k.startsWith("emp:")) S.emp.delete(k.slice(4)); else if (k.startsWith("tipo:")) S.tipo.delete(k.slice(5));
+    else if (k[0]==="k") S[k]=""; else S[k]=-1; render(); });
+  const x=$("#xAll"); if (x) x.onclick=()=>{ Object.assign(S,{q:"",kOc:"",kRq:"",aOc:-1,aRq:-1}); S.emp.clear(); S.tipo.clear(); $("#q").value=""; setWho(""); };
+}
+function setWho(w){ S.who=w; S.gOc=null; $("#who").value=w; try{localStorage.setItem("pend_who",w);}catch(e){} render(); }
+function render(){
+  $$("#fEmp .chip").forEach(c=>c.classList.toggle("on",S.emp.has(c.dataset.k)));
+  $$("#fTipo .chip").forEach(c=>c.classList.toggle("on",S.tipo.has(c.dataset.k)));
+  activos();
+  if (S.tab==="oc") { renderOc(); $("#cRq").textContent = n0(nRq(vRq())); } else { renderRq(); $("#cOc").textContent = n0(nOc(vOc())); }
+}
+function tab(t){ S.tab=t; $$(".tab").forEach(b=>{b.classList.toggle("on",b.dataset.t===t); b.setAttribute("aria-selected",b.dataset.t===t);}); render(); }
+
+// ---------- inicio ----------
+$("#who").innerHTML = `<option value="">Supervisor (todos)</option>` + COMPRADORES.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+$("#who").value = S.who; $("#who").onchange = e => setWho(e.target.value);
+$("#fEmp").innerHTML = ["TATSA","TVL"].map(e=>`<span class="chip" data-k="${e}" role="button" tabindex="0">${e}</span>`).join("");
+$("#fTipo").innerHTML = TIPOS.map(t=>`<span class="chip" data-k="${esc(t)}" role="button" tabindex="0">${esc(t)}</span>`).join("");
+$$("#fEmp .chip").forEach(c=>c.onclick=()=>{ const k=c.dataset.k; S.emp.has(k)?S.emp.delete(k):S.emp.add(k); render(); });
+$$("#fTipo .chip").forEach(c=>c.onclick=()=>{ const k=c.dataset.k; S.tipo.has(k)?S.tipo.delete(k):S.tipo.add(k); render(); });
+$$(".tab").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+let tq; $("#q").oninput = e => { clearTimeout(tq); tq=setTimeout(()=>{ S.q=e.target.value.trim().toLowerCase(); render(); },150); };
+document.addEventListener("keydown", e => { if (e.key==="/" && document.activeElement.tagName!=="INPUT") { e.preventDefault(); $("#q").focus(); } });
+$("#bCsv").onclick = () => {
+  const v = x => x==null ? "" : (typeof x==="number" ? String(Math.round(x*100)/100).replace(".",",") : `"${String(x).replace(/"/g,'""')}"`);
+  let cab, filas;
+  if (S.tab==="oc") { cab=["Empresa","Centro","Tipo","OC","Fecha_OC","Ref_proveedor","Proveedor","Comprador","RQ","Codigo","Llave","Producto","Cant_OC","Cant_pendiente","Valor_pendiente","Fecha_prevista","Dias_atraso","Entrega","Estado_OC"];
+    filas = vOc().map(r=>[r.e,r.cc,r.t,r.oc,r.fo,r.ref,r.pv,r.cm,r.rq,r.c,r.k,r.n,r.q,r.qp,r.v,r.fp,r.at,r.en,r.st]); }
+  else { cab=["Empresa","Centro","Tipo","RQ","Estado_cotizacion","Comprador","Creado","Aprobado","Dias_desde_aprobacion","Solicitante","Codigo","Llave","Producto","Cant_RQ","Ya_pedido","Pendiente","Valor_pendiente","Cotizaciones","Observacion"];
+    filas = vRq().map(r=>[r.e,r.cc,r.t,r.rq,estRq(r),cmRq(r),r.fc,r.fa,r.d,r.so,r.c,r.k,r.n,r.q,r.qo,r.qp,r.v,r.cot.map(c=>c.oc+(c.pv?" "+c.pv:" sin proveedor")+" ("+c.es+")").join(" | "),r.obs]); }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+cab.join(";")+"\n"+filas.map(f=>f.map(v).join(";")).join("\n")],{type:"text/csv;charset=utf-8"}));
+  a.download=`pendientes_${S.tab}${S.who?"_"+S.who.split(" ")[0]:""}_${M.hoy}.csv`; a.click();
+};
+$("#bTheme").onclick=()=>{const r=document.documentElement; const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark?"light":"dark"; try{localStorage.setItem("pend_theme",r.dataset.theme);}catch(e){} };
+try{ const th=localStorage.getItem("pend_theme"); if(th) document.documentElement.dataset.theme=th; }catch(e){}
+$("#sub").textContent = `Periodo ${M.periodo} · ${M.alcance} · Excel del ${M.excel} + Odoo · generado ${M.generado} · atraso frente a la fecha prevista de la OC · tecla / para buscar`;
+render();
+</script>
+</body>
+</html>
